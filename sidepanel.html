@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TimeLayer - カレンダー地層ビュー</title>
+  <link rel="stylesheet" href="sidepanel.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <span class="strata-bar strata-1"></span>
+          <span class="strata-bar strata-2"></span>
+          <span class="strata-bar strata-3"></span>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">TimeLayer</h1>
+          <span class="brand-subtitle">時間の地層ビューア</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="calendar-toggle-btn" class="icon-btn" title="カレンダーを選択・管理" aria-label="カレンダー管理">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span id="calendar-badge-count" class="action-badge hidden">0</span>
+        </button>
+        <button id="search-toggle-btn" class="icon-btn" title="キーワードで予定を絞り込み" aria-label="検索">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+        <button id="open-fullpage-btn" class="icon-btn" title="新しいタブで大画面ダッシュボードを開く" aria-label="全画面表示">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </button>
+        <button id="theme-toggle-btn" class="icon-btn" title="ライトモードに切り替え" aria-label="テーマ切替">
+          <svg class="theme-icon sun-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="theme-icon moon-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button id="refresh-btn" class="icon-btn" title="カレンダーを更新" aria-label="更新">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+          </svg>
+        </button>
+        <button id="signout-btn" class="icon-btn hidden" title="ログアウト" aria-label="ログアウト">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Error / Alert Banner -->
+    <div id="alert-banner" class="alert-banner hidden">
+      <span class="alert-icon">⚠️</span>
+      <span id="alert-message" class="alert-message"></span>
+      <button id="alert-close" class="alert-close">&times;</button>
+    </div>
+
+    <!-- View 1: Auth / Welcome Screen -->
+    <section id="auth-view" class="view-panel auth-view">
+      <div class="welcome-card">
+        <div class="welcome-visual">
+          <div class="layer-stack-visual">
+            <div class="mock-layer layer-current">
+              <span class="mock-badge">NOW</span>
+              <span class="mock-line"></span>
+            </div>
+            <div class="mock-layer layer-1yr">
+              <span class="mock-badge">1Y AGO</span>
+              <span class="mock-line"></span>
+            </div>
+            <div class="mock-layer layer-2yr">
+              <span class="mock-badge">2Y AGO</span>
+              <span class="mock-line"></span>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="welcome-title">時間の地層を旅する</h2>
+        <p class="welcome-desc">
+          Googleカレンダーと連携して、<strong>「今週」</strong>と<strong>「1年前の同週」「2年前の同週」</strong>の予定を縦に重ねて一覧できます。<br>
+          過去の自分の行動やリズムを振り返り、今の過ごし方に新しい気づきを。
+        </p>
+
+        <button id="signin-btn" class="google-signin-btn">
+          <svg class="google-icon" viewBox="0 0 24 24" width="18" height="18">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span>Googleアカウントでログイン</span>
+        </button>
+
+        <div class="auth-security-notice">
+          <span>🔒 読み取り専用権限（Calendar.Readonly）のみを使用します</span>
+        </div>
+
+        <!-- Google Cloud 設定用リダイレクトURI表示 -->
+        <div class="redirect-uri-box">
+          <span class="redirect-uri-label">承認済みのリダイレクト URI:</span>
+          <div class="redirect-uri-input-group">
+            <input type="text" id="redirect-uri-input" readonly>
+            <button id="copy-uri-btn" class="copy-btn" title="URIをコピー">コピー</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- View 2: Main Strata View (Authenticated) -->
+    <section id="main-view" class="view-panel main-view hidden">
+      <!-- Week Navigation Controls -->
+      <nav class="week-nav-bar">
+        <button id="prev-week-btn" class="nav-btn" title="前の週" aria-label="前の週">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <div class="week-info">
+          <span id="week-relative-label" class="week-relative-tag">今週</span>
+          <span id="week-range-text" class="week-range-text">読み込み中...</span>
+        </div>
+        <div class="nav-right">
+          <button id="today-week-btn" class="pill-btn" title="今週に戻る">今週</button>
+          <button id="next-week-btn" class="nav-btn" title="次の週" aria-label="次の週">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Search Bar (Toggleable) -->
+      <div id="search-bar-container" class="search-bar-container hidden">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="search-input" class="search-input" placeholder="予定タイトルや場所で絞り込み..." autocomplete="off">
+          <button id="search-clear-btn" class="search-clear-btn hidden" title="クリア">&times;</button>
+        </div>
+        <span id="search-match-count" class="search-match-count hidden">0件一致</span>
+      </div>
+
+      <!-- Calendar Manager Panel (Toggleable Drawer) -->
+      <div id="calendar-panel" class="calendar-panel hidden">
+        <div class="calendar-panel-header">
+          <div class="calendar-panel-title-group">
+            <span class="panel-icon">📅</span>
+            <span class="panel-title">表示カレンダー選択</span>
+            <span id="calendar-selected-summary" class="calendar-summary-tag">0件選択中</span>
+          </div>
+          <button id="calendar-panel-close" class="panel-close-btn" title="閉じる">&times;</button>
+        </div>
+
+        <div class="calendar-actions-bar">
+          <button id="btn-cal-all" class="cal-action-btn">すべて選択</button>
+          <button id="btn-cal-primary" class="cal-action-btn">メインのみ</button>
+          <button id="btn-cal-holiday" class="cal-action-btn">祝日切替</button>
+          <button id="btn-cal-reload" class="cal-action-btn icon-only" title="カレンダー一覧を再取得">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+            </svg>
+          </button>
+        </div>
+
+        <div id="calendar-list-loading" class="calendar-list-loading hidden">
+          <div class="mini-spinner"></div>
+          <span>カレンダーを取得中...</span>
+        </div>
+
+        <div id="calendar-list" class="calendar-list">
+          <!-- 動的にJSで生成 -->
+        </div>
+      </div>
+
+      <!-- Global Loading Overlay -->
+      <div id="loader" class="loader-overlay hidden">
+        <div class="loader-spinner"></div>
+        <span class="loader-text">カレンダーの地層を発掘中...</span>
+      </div>
+
+      <!-- Strata Layers Container -->
+      <div id="strata-container" class="strata-container">
+        <!-- Layer 1: Present (Top) -->
+        <article class="strata-card layer-theme-present" id="card-present">
+          <header class="layer-header" data-toggle="present">
+            <div class="layer-identity">
+              <span class="layer-pill">Layer 01</span>
+              <div class="layer-titles">
+                <span class="layer-depth-name">表層 (現在)</span>
+                <span id="date-present" class="layer-date-range">-</span>
+              </div>
+            </div>
+            <div class="layer-meta">
+              <span id="count-present" class="event-count-badge">0件</span>
+              <button class="toggle-btn" aria-label="折りたたみ">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+          </header>
+          <div class="layer-body" id="body-present">
+            <div class="events-timeline" id="events-present"></div>
+          </div>
+        </article>
+
+        <!-- Layer 2: 1 Year Ago (Middle) -->
+        <article class="strata-card layer-theme-1yr" id="card-1yr">
+          <header class="layer-header" data-toggle="1yr">
+            <div class="layer-identity">
+              <span class="layer-pill">Layer 02</span>
+              <div class="layer-titles">
+                <span class="layer-depth-name">中間層 (1年前)</span>
+                <span id="date-1yr" class="layer-date-range">-</span>
+              </div>
+            </div>
+            <div class="layer-meta">
+              <span id="count-1yr" class="event-count-badge">0件</span>
+              <button class="toggle-btn" aria-label="折りたたみ">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+          </header>
+          <div class="layer-body" id="body-1yr">
+            <div class="events-timeline" id="events-1yr"></div>
+          </div>
+        </article>
+
+        <!-- Layer 3: 2 Years Ago (Deep) -->
+        <article class="strata-card layer-theme-2yr" id="card-2yr">
+          <header class="layer-header" data-toggle="2yr">
+            <div class="layer-identity">
+              <span class="layer-pill">Layer 03</span>
+              <div class="layer-titles">
+                <span class="layer-depth-name">深層 (2年前)</span>
+                <span id="date-2yr" class="layer-date-range">-</span>
+              </div>
+            </div>
+            <div class="layer-meta">
+              <span id="count-2yr" class="event-count-badge">0件</span>
+              <button class="toggle-btn" aria-label="折りたたみ">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            </div>
+          </header>
+          <div class="layer-body" id="body-2yr">
+            <div class="events-timeline" id="events-2yr"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <span id="footer-status" class="footer-status">Google Calendar API v3</span>
+      <span id="last-updated" class="last-updated"></span>
+    </footer>
+  </div>
+
+  <script src="timelayer-core.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

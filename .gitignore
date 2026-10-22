@@ -1,0 +1,33 @@
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Editor / IDE files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Agent / Temp directories
+.gemini/
+scratch/
+*.log
+
+# Dependency directories (if added later)
+node_modules/
+
+# Build or bundle artifacts
+dist/
+build/
+*.zip
+*.crx

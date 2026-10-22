@@ -1,0 +1,70 @@
+{
+  "manifest_version": 3,
+  "name": "TimeLayer - カレンダー地層ビュー",
+  "version": "1.2.0",
+  "description": "今週と過去（1年前、2年前）のGoogleカレンダーの予定を地層のように重ねて比較・振り返りができるマルチビュー拡張機能（ダーク/ライトモード対応、サイドパネル・大画面ダッシュボード・Googleカレンダー直接埋め込み）",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "TimeLayerを開く",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "sidePanel",
+    "identity",
+    "storage",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*",
+    "https://calendar.google.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://calendar.google.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sidepanel.html",
+        "sidepanel.css",
+        "sidepanel.js",
+        "timelayer-core.js",
+        "dashboard.html",
+        "icons/*"
+      ],
+      "matches": [
+        "https://calendar.google.com/*"
+      ]
+    }
+  ],
+  "oauth2": {
+    "client_id": "375107412720-6vt1gfv7suo5igon8i5uahiemvp42qpr.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.readonly"
+    ]
+  }
+}
