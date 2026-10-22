@@ -1165,8 +1165,25 @@ body {
   flex: 1;
   padding: 12px 14px 16px;
   overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
   background: var(--bg-primary);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.column-body::-webkit-scrollbar {
+  width: 6px;
+}
+.column-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.column-body::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+.column-body::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
 }
 
 .events-timeline {
@@ -1180,6 +1197,38 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  box-sizing: border-box;
+  transition: min-height 0.15s ease-out;
+}
+
+.day-group-events {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+}
+
+.day-empty-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-style: italic;
+  flex: 1;
+  min-height: 38px;
+  box-sizing: border-box;
+}
+
+[data-theme="light"] .day-empty-placeholder {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #94a3b8;
 }
 
 .day-header {

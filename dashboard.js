@@ -199,6 +199,9 @@
       btnViewMatrix.classList.remove('active');
       viewColumnsContainer.classList.remove('hidden');
       viewMatrixContainer.classList.add('hidden');
+      requestAnimationFrame(() => {
+        syncColumnDayHeights();
+      });
     }
 
     chrome.storage.local.set({ timelayer_view_mode: mode });
@@ -557,6 +560,9 @@
       renderColumnEvents(columns.present, eventsPresent, rangePresent.start);
       renderColumnEvents(columns['1yr'], events1yr, range1yr.start);
       renderColumnEvents(columns['2yr'], events2yr, range2yr.start);
+      requestAnimationFrame(() => {
+        syncColumnDayHeights();
+      });
 
       // 2. 週横組みマトリクスビューのレンダリング
       renderMatrixView(rangePresent, range1yr, range2yr, eventsPresent, events1yr, events2yr);
@@ -908,59 +914,73 @@
   }
 
   // =========================================================================
-  // Render: 3-Column Columns View (3列縦スクロール)
+  // Render: 3-Column Columns View (3列縦スクロール & 曜日整列)
   // =========================================================================
   function renderColumnEvents(columnObj, events, weekStartDate) {
     columnObj.count.textContent = `${events.length}件`;
     const container = columnObj.eventsContainer;
     container.innerHTML = '';
 
-    if (events.length === 0) {
-      container.innerHTML = `
-        <div class="layer-empty-state">
-          <span class="layer-empty-icon">🌱</span>
-          <span>選択されたカレンダーに予定はありません</span>
-        </div>
-      `;
-      return;
-    }
+    const dayGroups = [];
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-    const dayGroups = new Map();
-
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(weekStartDate.getFullYear(), weekStartDate.getMonth(), weekStartDate.getDate() + i);
+    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+      const d = new Date(weekStartDate.getFullYear(), weekStartDate.getMonth(), weekStartDate.getDate() + dayIndex);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      dayGroups.set(key, { date: d, items: [], holidays: [] });
+      dayGroups.push({
+        dayIndex,
+        date: d,
+        dateKey: key,
+        items: [],
+        holidays: []
+      });
     }
 
     events.forEach(evt => {
-      let dateKey = '';
       if (evt.start?.date) {
-        dateKey = evt.start.date;
+        // 全日・日マタギ予定（複数日スパン対応）
+        const startStr = evt.start.date;
+        const endStr = evt.end?.date;
+        dayGroups.forEach(group => {
+          const isInRange = endStr ? (group.dateKey >= startStr && group.dateKey < endStr) : (group.dateKey === startStr);
+          if (isInRange) {
+            group.items.push(evt);
+            if (evt._isHoliday) {
+              group.holidays.push(evt.summary || '祝日');
+            }
+          }
+        });
       } else if (evt.start?.dateTime) {
         const d = new Date(evt.start.dateTime);
-        dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      }
-
-      if (dayGroups.has(dateKey)) {
-        const group = dayGroups.get(dateKey);
-        group.items.push(evt);
-        if (evt._isHoliday) {
-          group.holidays.push(evt.summary || '祝日');
+        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const group = dayGroups.find(g => g.dateKey === dateKey);
+        if (group) {
+          group.items.push(evt);
+          if (evt._isHoliday) {
+            group.holidays.push(evt.summary || '祝日');
+          }
         }
       }
     });
 
-    const today = new Date();
-    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-    dayGroups.forEach((group, key) => {
-      if (group.items.length === 0) return;
+    dayGroups.forEach(group => {
+      // 終日予定を先頭に、時間指定予定を開始時刻順でソート
+      group.items.sort((a, b) => {
+        const isAllDayA = Boolean(a.start?.date);
+        const isAllDayB = Boolean(b.start?.date);
+        if (isAllDayA && !isAllDayB) return -1;
+        if (!isAllDayA && isAllDayB) return 1;
+        const timeA = a.start?.dateTime || a.start?.date || '';
+        const timeB = b.start?.dateTime || b.start?.date || '';
+        return timeA.localeCompare(timeB);
+      });
 
       const dayGroupEl = document.createElement('div');
       dayGroupEl.className = 'day-group';
+      dayGroupEl.dataset.dayIndex = String(group.dayIndex);
 
-      const isToday = key === todayKey;
+      const isToday = group.dateKey === todayKey;
       const isHoliday = group.holidays.length > 0;
       const holidayName = isHoliday ? group.holidays[0] : '';
 
@@ -973,17 +993,66 @@
           ${isToday ? '<span class="today-indicator">TODAY</span>' : ''}
           ${isHoliday ? `<span class="day-holiday-badge">🎌 ${escapeHtml(holidayName)}</span>` : ''}
         </div>
-        <span style="font-size: 11px; color: var(--text-tertiary);">${group.items.length}件</span>
+        <span style="font-size: 11px; color: var(--text-tertiary);">${group.items.length > 0 ? `${group.items.length}件` : '-'}</span>
       `;
       dayGroupEl.appendChild(dayHeader);
 
-      group.items.forEach(item => {
-        const itemEl = createEventItemElement(item);
-        dayGroupEl.appendChild(itemEl);
-      });
+      const eventsListEl = document.createElement('div');
+      eventsListEl.className = 'day-group-events';
 
+      if (group.items.length === 0) {
+        const emptyEl = document.createElement('div');
+        emptyEl.className = 'day-empty-placeholder';
+        emptyEl.textContent = '予定なし';
+        eventsListEl.appendChild(emptyEl);
+      } else {
+        group.items.forEach(item => {
+          const itemEl = createEventItemElement(item);
+          eventsListEl.appendChild(itemEl);
+        });
+      }
+
+      dayGroupEl.appendChild(eventsListEl);
       container.appendChild(dayGroupEl);
     });
+  }
+
+  // 3列カラムの全7曜日（日〜土）の高さを同期して横位置を揃える
+  function syncColumnDayHeights() {
+    if (currentViewMode !== 'columns') return;
+
+    const presentContainer = columns.present.eventsContainer;
+    const yr1Container = columns['1yr'].eventsContainer;
+    const yr2Container = columns['2yr'].eventsContainer;
+
+    if (!presentContainer || !yr1Container || !yr2Container) return;
+
+    const presentGroups = presentContainer.querySelectorAll('.day-group');
+    const yr1Groups = yr1Container.querySelectorAll('.day-group');
+    const yr2Groups = yr2Container.querySelectorAll('.day-group');
+
+    if (presentGroups.length !== 7 || yr1Groups.length !== 7 || yr2Groups.length !== 7) {
+      return;
+    }
+
+    // 1. 各要素の minHeight をリセットして自然なコンテンツ高さを取得できるようにする
+    for (let i = 0; i < 7; i++) {
+      presentGroups[i].style.minHeight = '';
+      yr1Groups[i].style.minHeight = '';
+      yr2Groups[i].style.minHeight = '';
+    }
+
+    // 2. 曜日ごとに最大高さを計測し、3列すべてに適用
+    for (let i = 0; i < 7; i++) {
+      const h0 = presentGroups[i].offsetHeight;
+      const h1 = yr1Groups[i].offsetHeight;
+      const h2 = yr2Groups[i].offsetHeight;
+      const maxH = Math.max(h0, h1, h2);
+
+      presentGroups[i].style.minHeight = `${maxH}px`;
+      yr1Groups[i].style.minHeight = `${maxH}px`;
+      yr2Groups[i].style.minHeight = `${maxH}px`;
+    }
   }
 
   function createEventItemElement(item) {
@@ -1050,6 +1119,9 @@
       });
       searchClearBtn.classList.add('hidden');
       searchMatchCount.classList.add('hidden');
+      requestAnimationFrame(() => {
+        syncColumnDayHeights();
+      });
       return;
     }
 
@@ -1075,6 +1147,9 @@
 
     searchMatchCount.textContent = `${effectiveCount}件一致`;
     searchMatchCount.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      syncColumnDayHeights();
+    });
   }
 
   function escapeHtml(str) {
@@ -1180,9 +1255,69 @@
   }
 
   // =========================================================================
+  // 3-Column Scroll Synchronization
+  // =========================================================================
+  function initColumnScrollSync() {
+    const colPresentBody = document.querySelector('#col-present .column-body');
+    const col1yrBody = document.querySelector('#col-1yr .column-body');
+    const col2yrBody = document.querySelector('#col-2yr .column-body');
+    const columnBodies = [colPresentBody, col1yrBody, col2yrBody].filter(Boolean);
+
+    let activeScroller = null;
+    let resetScrollerTimer = null;
+
+    columnBodies.forEach(scroller => {
+      // ユーザーの入力開始元をマークして、連動による相互イベント発火ループを防止
+      scroller.addEventListener('mouseenter', () => { activeScroller = scroller; });
+      scroller.addEventListener('touchstart', () => { activeScroller = scroller; }, { passive: true });
+      scroller.addEventListener('pointerdown', () => { activeScroller = scroller; });
+
+      scroller.addEventListener('scroll', () => {
+        if (!activeScroller) {
+          activeScroller = scroller;
+        }
+
+        if (activeScroller === scroller) {
+          const targetTop = scroller.scrollTop;
+          columnBodies.forEach(other => {
+            if (other !== scroller) {
+              other.scrollTop = targetTop;
+            }
+          });
+        }
+
+        clearTimeout(resetScrollerTimer);
+        resetScrollerTimer = setTimeout(() => {
+          activeScroller = null;
+        }, 150);
+      }, { passive: true });
+    });
+
+    // カラムヘッダーや枠線の余白でホイールスクロールした場合も同期してスクロール
+    const panoramicGrid = document.querySelector('.panoramic-grid');
+    if (panoramicGrid) {
+      panoramicGrid.addEventListener('wheel', (e) => {
+        if (!e.target.closest('.column-body')) {
+          if (columnBodies.length > 0) {
+            columnBodies[0].scrollTop += e.deltaY;
+          }
+        }
+      }, { passive: true });
+    }
+  }
+
+  // =========================================================================
   // Event Listeners
   // =========================================================================
   function setupEventListeners() {
+    // 3列カラムのスクロール同期初期化
+    initColumnScrollSync();
+
+    // ウィンドウリサイズ時の曜日高さ再計算
+    window.addEventListener('resize', TimeLayerCore.debounce(() => {
+      syncColumnDayHeights();
+    }, 150));
+
     // 認証
     signinBtn.addEventListener('click', handleSignIn);
     signoutBtn.addEventListener('click', handleSignOut);
