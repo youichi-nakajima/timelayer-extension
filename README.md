@@ -100,14 +100,29 @@ timelayer-extension/
 ├── content.js           # Google Calendar ページ埋め込み用コンテンツスクリプト
 ├── content.css          # Google Calendar 内フローティングボタン・ドロワー用スタイル
 ├── icons/               # 拡張機能アイコン (16x16, 48x48, 128x128)
+├── fonts/               # ローカルバンドルフォント (Plus Jakarta Sans woff2 / 完全オフライン・外部通信ゼロ)
+├── build-package.ps1    # Chrome Web Store 提出用 ZIP パッケージ自動生成スクリプト
 └── README.md            # ドキュメント（本ファイル）
 ```
 
 ---
 
+## 📦 ストア提出用パッケージのビルド (Packaging)
+
+Chrome Web Store 提出用のクリーンな ZIP アーカイブ（不要な開発用ファイル・隠しファイルを除外）を生成するには、PowerShell で以下を実行します：
+
+```powershell
+.\build-package.ps1
+```
+
+実行すると、`dist/timelayer-v<version>.zip` が生成されます。このファイルをそのまま [Chrome デベロッパーダッシュボード](https://chrome.google.com/webstore/devconsole) にアップロードできます。
+
+---
+
 ## 🔒 プライバシー & セキュリティ (Privacy)
 
-- **外部サーバー不使用**: 取得したカレンダー情報は、ユーザーのブラウザと Google 公式 API（`googleapis.com`）の間でのみ通信され、サードパーティのサーバー等には一切送信・保存されません。
+- **外部サーバー不使用 & 完全ローカルバンドル**: 取得したカレンダー情報は、ユーザーのブラウザと Google 公式 API（`googleapis.com`）の間でのみ通信され、サードパーティのサーバー等には一切送信・保存されません。また、UIフォントもすべてローカル同梱（woff2）されており、レンダリング時に外部 CDN やサードパーティサーバーへの接続・追跡は一切行われません。
+- **インメモリ・トークン管理**: OAuth トークンは `chrome.storage.session`（メモリ内）でのみ管理され、ブラウザ終了時や明示的なサインアウトで安全に破棄されます（ディスクに平文保存されません）。
 - **最小限の権限設計**: カレンダーの読み取り権限（`calendar.readonly`）のみを要求します。作成・変更・削除などの書き込み権限は一切保持しません。
 
 ---
