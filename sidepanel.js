@@ -714,7 +714,7 @@
     if (item.htmlLink) {
       itemEl.style.cursor = 'pointer';
       itemEl.addEventListener('click', () => {
-        window.open(item.htmlLink, '_blank');
+        window.open(item.htmlLink, '_blank', 'noopener,noreferrer');
       });
     }
 

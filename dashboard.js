@@ -906,7 +906,7 @@
     if (item.htmlLink) {
       bannerEl.style.cursor = 'pointer';
       bannerEl.addEventListener('click', () => {
-        window.open(item.htmlLink, '_blank', 'noopener');
+        window.open(item.htmlLink, '_blank', 'noopener,noreferrer');
       });
     }
 
@@ -1099,7 +1099,7 @@
     if (item.htmlLink) {
       itemEl.style.cursor = 'pointer';
       itemEl.addEventListener('click', () => {
-        window.open(item.htmlLink, '_blank');
+        window.open(item.htmlLink, '_blank', 'noopener,noreferrer');
       });
     }
 
