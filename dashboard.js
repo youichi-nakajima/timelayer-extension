@@ -1176,18 +1176,23 @@
     const manifest = chrome.runtime.getManifest();
     const clientId = manifest.oauth2?.client_id ? manifest.oauth2.client_id.trim() : null;
     const scopes = manifest.oauth2?.scopes || [
-      'https://www.googleapis.com/auth/calendar.readonly'
+      'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+      'https://www.googleapis.com/auth/calendar.events.readonly'
     ];
 
     if (!clientId || clientId.includes('YOUR_GOOGLE_CLIENT_ID')) {
       throw new Error('manifest.json にクライアントIDが設定されていません。');
     }
 
+    // CSRF対策のランダムstate値を生成
+    const state = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)) + Date.now().toString(36);
+
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('response_type', 'token');
     authUrl.searchParams.set('redirect_uri', REDIRECT_URL);
     authUrl.searchParams.set('scope', scopes.join(' '));
+    authUrl.searchParams.set('state', state);
     authUrl.searchParams.set('prompt', 'select_account');
 
     return new Promise((resolve, reject) => {
@@ -1207,8 +1212,12 @@
           const hashParams = new URLSearchParams(urlObj.hash.substring(1));
           const accessToken = hashParams.get('access_token');
           const error = hashParams.get('error');
+          const returnState = hashParams.get('state');
 
           if (error) return reject(new Error(`OAuthエラー: ${error}`));
+          if (returnState !== state) {
+            return reject(new Error('OAuth state検証に失敗しました（CSRFの疑いがあります）'));
+          }
           if (!accessToken) return reject(new Error('アクセストークンを取得できませんでした'));
 
           const expiresIn = hashParams.get('expires_in');
@@ -1239,9 +1248,10 @@
 
   async function handleSignOut() {
     if (currentAuthToken) {
-      fetch(`https://oauth2.googleapis.com/revoke?token=${currentAuthToken}`, {
+      fetch('https://oauth2.googleapis.com/revoke', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `token=${encodeURIComponent(currentAuthToken)}`
       }).catch(() => {});
     }
     if (loadController) {

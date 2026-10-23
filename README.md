@@ -41,7 +41,8 @@
 - **複数日トラック表示**: 数日間にまたがる出張や連休・合宿などの長期イベントも、帯状のトラックでわかりやすく可視化。
 
 ### 4. 堅牢なパフォーマンス & セキュリティ設計
-- **読み取り専用権限**: `https://www.googleapis.com/auth/calendar.readonly` のみを使用し、予定の改変・削除は一切行いません。
+- **最小権限（Least Privilege）のスコープ設計**: カレンダー設定等の不要な権限を排除し、予定比較・表示に必要な2つの最小権限（`calendar.calendarlist.readonly` および `calendar.events.readonly`）のみを要求します。予定の作成・改変・削除権限は一切保持しません。
+- **CSRF 対策（OAuth state 検証）**: 認証フロー時に暗号学的に安全なランダム `state` を生成・照合し、なりすましや不正なリダイレクトを防止。
 - **インメモリ・トークン管理**: OAuth トークンは `chrome.storage.session`（メモリ内）でのみ管理され、ブラウザ終了時や明示的なサインアウトで安全に破棄されます（ディスクに平文保存されません）。
 - **レート制限 & バックオフ制御**: Google Calendar API のリクエスト制限（429 / 403 Rate Limit）に備えた最大3回の指数バックオフ（Exponential Backoff）および同時接続数制限キューを実装。
 - **スマートキャッシュ**: 静的な過去の予定は長期間、現在の予定は短期間のTTLキャッシュを効かせることで、高速な表示とAPI消費量の最小化を両立。
@@ -76,11 +77,12 @@ git clone https://github.com/youichi-nakajima/timelayer-extension.git
 1. [Google Cloud Console](https://console.cloud.google.com/) にアクセスし、プロジェクトを作成（または選択）します。
 2. **「API とサービス」 > 「ライブラリ」** から **「Google Calendar API」** を有効化します。
 3. **「API とサービス」 > 「認証情報」** で **「認証情報を作成」 > 「OAuth クライアント ID」** を選択します。
-   - アプリケーションの種類: **「Chrome アプリ」** または **「ウェブ アプリケーション」**
+   - アプリケーションの種類: **「ウェブ アプリケーション」** を選択します（※ `chrome.identity.launchWebAuthFlow` を使用するため、「Chrome アプリ」ではなく必ず「ウェブ アプリケーション」を選択してください）。
    - 承認済みのリダイレクト URI:  
      `https://<あなたの拡張機能ID>.chromiumapp.org/`  
-     *(※拡張機能初回起動時のログイン画面に表示されるコピーボタンから直接取得できます)*
-4. 作成したクライアント ID を [manifest.json](file:///c:/Users/youic/Projects/timelayer-extension/manifest.json) の `oauth2.client_id` に設定し、拡張機能を再読み込みします。
+     *(※拡張機能初回起動時のログイン画面に表示されるコピーボタンから直接取得できます)*  
+     *(※Chrome ウェブストア公開時は、公開後の本番拡張機能IDの URI もここに追加登録してください)*
+4. 作成したクライアント ID を [manifest.json](manifest.json) の `oauth2.client_id` に設定し、拡張機能を再読み込みします。
 
 ---
 
@@ -122,7 +124,7 @@ Chrome Web Store 提出用のクリーンな ZIP アーカイブ（不要な開�
 
 - **外部サーバー不使用 & 完全ローカル動作**: 取得したカレンダー情報は、ユーザーのブラウザと Google 公式 API（`googleapis.com`）の間でのみ通信され、サードパーティのサーバー等には一切送信・保存されません。また、UIはOS標準のシステムフォントのみを使用するため、レンダリング時に外部 CDN への通信やフォントライセンスの依存は一切ありません。
 - **インメモリ・トークン管理**: OAuth トークンは `chrome.storage.session`（メモリ内）でのみ管理され、ブラウザ終了時や明示的なサインアウトで安全に破棄されます（ディスクに平文保存されません）。
-- **最小限の権限設計**: カレンダーの読み取り権限（`calendar.readonly`）のみを要求します。作成・変更・削除などの書き込み権限は一切保持しません。
+- **最小限の権限設計（Least Privilege）**: カレンダー一覧の読み取り（`calendar.calendarlist.readonly`）とイベントの読み取り（`calendar.events.readonly`）のみを要求します。カレンダー設定の参照や予定の作成・変更・削除などの書き込み権限は一切保持しません。
 
 ---
 
