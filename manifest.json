@@ -54,8 +54,7 @@
         "sidepanel.js",
         "timelayer-core.js",
         "dashboard.html",
-        "icons/*",
-        "fonts/*"
+        "icons/*"
       ],
       "matches": [
         "https://calendar.google.com/*"

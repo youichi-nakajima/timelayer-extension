@@ -50,8 +50,7 @@ $includeItems = @(
     "dashboard.js",
     "content.js",
     "content.css",
-    "icons",
-    "fonts"
+    "icons"
 )
 
 $stageDir = Join-Path $distPath "staging"
