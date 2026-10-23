@@ -135,6 +135,16 @@
     return `${h}:${m}`;
   }
 
+  function formatDateOnly(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function getDayDifference(dateStr1, dateStr2) {
+    const d1 = new Date(dateStr1 + 'T00:00:00Z');
+    const d2 = new Date(dateStr2 + 'T00:00:00Z');
+    return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+  }
+
   // =========================================================================
   // UI Display & Alerts
   // =========================================================================
@@ -226,27 +236,38 @@
   }
 
   async function fetchCalendarList(token) {
-    const endpoint = new URL('https://www.googleapis.com/calendar/v3/users/me/calendarList');
-    endpoint.searchParams.set('maxResults', '100');
+    const allItems = [];
+    let pageToken = null;
+    let pageCount = 0;
+    const MAX_PAGES = 5;
 
-    const response = await TimeLayerCore.apiFetch(endpoint.toString(), token);
+    do {
+      const endpoint = new URL('https://www.googleapis.com/calendar/v3/users/me/calendarList');
+      endpoint.searchParams.set('maxResults', '100');
+      endpoint.searchParams.set('fields', 'items(id,summary,description,backgroundColor,foregroundColor,primary,selected),nextPageToken');
+      if (pageToken) endpoint.searchParams.set('pageToken', pageToken);
 
-    if (response.status === 401) {
-      await clearStoredToken();
-      throw new Error('AUTH_EXPIRED');
-    }
+      const response = await TimeLayerCore.apiFetch(endpoint.toString(), token);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const message = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
-      throw new Error(message);
-    }
+      if (response.status === 401) {
+        await clearStoredToken();
+        throw new Error('AUTH_EXPIRED');
+      }
 
-    const data = await response.json();
-    const items = data.items || [];
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(message);
+      }
+
+      const data = await response.json();
+      if (data.items) allItems.push(...data.items);
+      pageToken = data.nextPageToken || null;
+      pageCount++;
+    } while (pageToken && pageCount < MAX_PAGES);
 
     // カレンダー情報の正規化
-    const parsed = items.map(item => {
+    const parsed = allItems.map(item => {
       const isHoliday = isHolidayCalendar(item);
       return {
         id: item.id,
@@ -401,30 +422,43 @@
     try {
       // 同じカレンダー・同じ期間はキャッシュを再利用（過去期間30分 / 現在含む2分）
       items = await TimeLayerCore.getEventsCached(cal.id, timeMin, timeMax, async () => {
-        const encodedId = encodeURIComponent(cal.id);
-        const endpoint = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
-        endpoint.searchParams.set('timeMin', timeMin.toISOString());
-        endpoint.searchParams.set('timeMax', timeMax.toISOString());
-        endpoint.searchParams.set('singleEvents', 'true');
-        endpoint.searchParams.set('orderBy', 'startTime');
-        endpoint.searchParams.set('maxResults', '250');
+        const allEvents = [];
+        let pageToken = null;
+        let pageCount = 0;
+        const MAX_PAGES = 4;
 
-        const response = await TimeLayerCore.apiFetch(endpoint.toString(), token, { signal });
+        do {
+          const encodedId = encodeURIComponent(cal.id);
+          const endpoint = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
+          endpoint.searchParams.set('timeMin', timeMin.toISOString());
+          endpoint.searchParams.set('timeMax', timeMax.toISOString());
+          endpoint.searchParams.set('singleEvents', 'true');
+          endpoint.searchParams.set('orderBy', 'startTime');
+          endpoint.searchParams.set('maxResults', '250');
+          endpoint.searchParams.set('fields', 'items(id,summary,location,start,end,htmlLink),nextPageToken');
+          if (pageToken) endpoint.searchParams.set('pageToken', pageToken);
 
-        if (response.status === 401) {
-          await clearStoredToken();
-          throw new Error('AUTH_EXPIRED');
-        }
+          const response = await TimeLayerCore.apiFetch(endpoint.toString(), token, { signal });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const fetchErr = new Error(errorData.error?.message || `HTTP ${response.status}`);
-          fetchErr.name = 'CalendarFetchError';
-          throw fetchErr;
-        }
+          if (response.status === 401) {
+            await clearStoredToken();
+            throw new Error('AUTH_EXPIRED');
+          }
 
-        const data = await response.json();
-        return data.items || [];
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const fetchErr = new Error(errorData.error?.message || `HTTP ${response.status}`);
+            fetchErr.name = 'CalendarFetchError';
+            throw fetchErr;
+          }
+
+          const data = await response.json();
+          if (data.items) allEvents.push(...data.items);
+          pageToken = data.nextPageToken || null;
+          pageCount++;
+        } while (pageToken && pageCount < MAX_PAGES);
+
+        return allEvents;
       }, signal);
     } catch (err) {
       // 特定カレンダーのエラー（権限なし等）はスキップ
@@ -600,42 +634,67 @@
       return;
     }
 
-    // イベントを開始日（YYYY-MM-DD）ごとにグループ化
+    // 7曜日（日〜土）のグループマップを初期化
     const dayGroups = new Map();
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekStartDate.getFullYear(), weekStartDate.getMonth(), weekStartDate.getDate() + i);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const key = formatDateOnly(d);
       dayGroups.set(key, { date: d, items: [], holidays: [] });
     }
 
     events.forEach(evt => {
-      let dateKey = '';
       if (evt.start?.date) {
-        // 終日イベント (YYYY-MM-DD)
-        dateKey = evt.start.date;
+        // 終日・複数日予定（全日スパン対応）
+        const startStr = evt.start.date;
+        const endStr = evt.end?.date;
+        dayGroups.forEach((group, key) => {
+          const isInRange = endStr ? (key >= startStr && key < endStr) : (key === startStr);
+          if (isInRange) {
+            group.items.push(evt);
+            if (evt._isHoliday) {
+              group.holidays.push(evt.summary || '祝日');
+            }
+          }
+        });
       } else if (evt.start?.dateTime) {
-        const d = new Date(evt.start.dateTime);
-        dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      }
+        // 時間指定予定（日マタギ・複数日対応）
+        const s = new Date(evt.start.dateTime);
+        const startStr = formatDateOnly(s);
+        const e = evt.end?.dateTime ? new Date(evt.end.dateTime) : s;
+        const isMidnightEnd = e.getHours() === 0 && e.getMinutes() === 0 && e.getSeconds() === 0;
+        const effectiveEndDate = isMidnightEnd ? new Date(e.getTime() - 1000) : e;
+        const endStr = formatDateOnly(effectiveEndDate);
 
-      if (dayGroups.has(dateKey)) {
-        const group = dayGroups.get(dateKey);
-        group.items.push(evt);
-
-        // 祝日カレンダーのイベントである場合は祝日名として記録
-        if (evt._isHoliday) {
-          group.holidays.push(evt.summary || '祝日');
-        }
+        dayGroups.forEach((group, key) => {
+          if (key >= startStr && key <= endStr) {
+            group.items.push(evt);
+            if (evt._isHoliday) {
+              group.holidays.push(evt.summary || '祝日');
+            }
+          }
+        });
       }
     });
 
     const today = new Date();
-    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const todayKey = formatDateOnly(today);
 
     // 各日の要素を生成
     dayGroups.forEach((group, key) => {
       if (group.items.length === 0) return; // 予定がない日はスキップ
+
+      // 終日予定を先頭に、時間指定予定を開始時刻順でソート
+      group.items.sort((a, b) => {
+        const isAllDayA = Boolean(a.start?.date);
+        const isAllDayB = Boolean(b.start?.date);
+        if (isAllDayA && !isAllDayB) return -1;
+        if (!isAllDayA && isAllDayB) return 1;
+
+        const timeA = a.start?.dateTime ? new Date(a.start.dateTime).getTime() : 0;
+        const timeB = b.start?.dateTime ? new Date(b.start.dateTime).getTime() : 0;
+        return timeA - timeB;
+      });
 
       const dayGroupEl = document.createElement('div');
       dayGroupEl.className = 'day-group';
@@ -658,7 +717,7 @@
       dayGroupEl.appendChild(dayHeader);
 
       group.items.forEach(item => {
-        const itemEl = createEventItemElement(item);
+        const itemEl = createEventItemElement(item, key);
         dayGroupEl.appendChild(itemEl);
       });
 
@@ -666,7 +725,7 @@
     });
   }
 
-  function createEventItemElement(item) {
+  function createEventItemElement(item, currentDateKey) {
     const itemEl = document.createElement('div');
     itemEl.className = 'event-item';
 
@@ -679,15 +738,38 @@
       itemEl.classList.add('is-holiday-item');
     }
 
-    // 時間の表示判定
+    // 時間の表示判定（日マタギ・複数日対応）
     let timeHtml = '';
     if (item.start?.date) {
-      timeHtml = '<span class="all-day-tag">終日</span>';
+      const startStr = item.start.date;
+      const endStr = item.end?.date || startStr;
+      const totalDays = Math.max(1, getDayDifference(startStr, endStr));
+      if (totalDays > 1) {
+        timeHtml = `<span class="all-day-tag">終日 (${totalDays}日間)</span>`;
+      } else {
+        timeHtml = '<span class="all-day-tag">終日</span>';
+      }
     } else if (item.start?.dateTime) {
       const s = new Date(item.start.dateTime);
       const e = item.end?.dateTime ? new Date(item.end.dateTime) : null;
-      const timeStr = e ? `${formatTime(s)} - ${formatTime(e)}` : formatTime(s);
-      timeHtml = `<span class="event-time">${timeStr}</span>`;
+      if (e) {
+        const sStr = formatDateOnly(s);
+        const isMidnight = e.getHours() === 0 && e.getMinutes() === 0 && e.getSeconds() === 0;
+        const eStr = formatDateOnly(isMidnight ? new Date(e.getTime() - 1000) : e);
+        if (sStr !== eStr && currentDateKey) {
+          if (currentDateKey === sStr) {
+            timeHtml = `<span class="event-time">${formatTime(s)}〜</span>`;
+          } else if (currentDateKey === eStr) {
+            timeHtml = `<span class="event-time">〜${formatTime(e)}</span>`;
+          } else {
+            timeHtml = '<span class="event-time">終日（継続）</span>';
+          }
+        } else {
+          timeHtml = `<span class="event-time">${formatTime(s)} - ${formatTime(e)}</span>`;
+        }
+      } else {
+        timeHtml = `<span class="event-time">${formatTime(s)}</span>`;
+      }
     }
 
     const summary = item.summary || '(タイトルなし)';
