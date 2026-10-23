@@ -258,26 +258,37 @@
   }
 
   async function fetchCalendarList(token) {
-    const endpoint = new URL('https://www.googleapis.com/calendar/v3/users/me/calendarList');
-    endpoint.searchParams.set('maxResults', '100');
+    const allItems = [];
+    let pageToken = null;
+    let pageCount = 0;
+    const MAX_PAGES = 5;
 
-    const response = await TimeLayerCore.apiFetch(endpoint.toString(), token);
+    do {
+      const endpoint = new URL('https://www.googleapis.com/calendar/v3/users/me/calendarList');
+      endpoint.searchParams.set('maxResults', '100');
+      endpoint.searchParams.set('fields', 'items(id,summary,description,backgroundColor,foregroundColor,primary,selected),nextPageToken');
+      if (pageToken) endpoint.searchParams.set('pageToken', pageToken);
 
-    if (response.status === 401) {
-      await clearStoredToken();
-      throw new Error('AUTH_EXPIRED');
-    }
+      const response = await TimeLayerCore.apiFetch(endpoint.toString(), token);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      const message = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
-      throw new Error(message);
-    }
+      if (response.status === 401) {
+        await clearStoredToken();
+        throw new Error('AUTH_EXPIRED');
+      }
 
-    const data = await response.json();
-    const items = data.items || [];
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+        throw new Error(message);
+      }
 
-    const parsed = items.map(item => ({
+      const data = await response.json();
+      if (data.items) allItems.push(...data.items);
+      pageToken = data.nextPageToken || null;
+      pageCount++;
+    } while (pageToken && pageCount < MAX_PAGES);
+
+    const parsed = allItems.map(item => ({
       id: item.id,
       summary: item.summary || '（名称未設定）',
       description: item.description || '',
@@ -419,29 +430,42 @@
     try {
       // 同じカレンダー・同じ期間はキャッシュを再利用（過去期間30分 / 現在含む2分）
       items = await TimeLayerCore.getEventsCached(cal.id, timeMin, timeMax, async () => {
-        const encodedId = encodeURIComponent(cal.id);
-        const endpoint = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
-        endpoint.searchParams.set('timeMin', timeMin.toISOString());
-        endpoint.searchParams.set('timeMax', timeMax.toISOString());
-        endpoint.searchParams.set('singleEvents', 'true');
-        endpoint.searchParams.set('orderBy', 'startTime');
-        endpoint.searchParams.set('maxResults', '250');
+        const allEvents = [];
+        let pageToken = null;
+        let pageCount = 0;
+        const MAX_PAGES = 4;
 
-        const response = await TimeLayerCore.apiFetch(endpoint.toString(), token, { signal });
+        do {
+          const encodedId = encodeURIComponent(cal.id);
+          const endpoint = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
+          endpoint.searchParams.set('timeMin', timeMin.toISOString());
+          endpoint.searchParams.set('timeMax', timeMax.toISOString());
+          endpoint.searchParams.set('singleEvents', 'true');
+          endpoint.searchParams.set('orderBy', 'startTime');
+          endpoint.searchParams.set('maxResults', '250');
+          endpoint.searchParams.set('fields', 'items(id,summary,location,start,end,htmlLink),nextPageToken');
+          if (pageToken) endpoint.searchParams.set('pageToken', pageToken);
 
-        if (response.status === 401) {
-          await clearStoredToken();
-          throw new Error('AUTH_EXPIRED');
-        }
+          const response = await TimeLayerCore.apiFetch(endpoint.toString(), token, { signal });
 
-        if (!response.ok) {
-          const fetchErr = new Error(`HTTP ${response.status}`);
-          fetchErr.name = 'CalendarFetchError';
-          throw fetchErr;
-        }
+          if (response.status === 401) {
+            await clearStoredToken();
+            throw new Error('AUTH_EXPIRED');
+          }
 
-        const data = await response.json();
-        return data.items || [];
+          if (!response.ok) {
+            const fetchErr = new Error(`HTTP ${response.status}`);
+            fetchErr.name = 'CalendarFetchError';
+            throw fetchErr;
+          }
+
+          const data = await response.json();
+          if (data.items) allEvents.push(...data.items);
+          pageToken = data.nextPageToken || null;
+          pageCount++;
+        } while (pageToken && pageCount < MAX_PAGES);
+
+        return allEvents;
       }, signal);
     } catch (err) {
       // 特定カレンダーのエラー（権限なし等）はスキップ
@@ -906,7 +930,7 @@
     if (item.htmlLink) {
       bannerEl.style.cursor = 'pointer';
       bannerEl.addEventListener('click', () => {
-        window.open(item.htmlLink, '_blank', 'noopener');
+        window.open(item.htmlLink, '_blank', 'noopener,noreferrer');
       });
     }
 
@@ -952,15 +976,21 @@
           }
         });
       } else if (evt.start?.dateTime) {
-        const d = new Date(evt.start.dateTime);
-        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const group = dayGroups.find(g => g.dateKey === dateKey);
-        if (group) {
-          group.items.push(evt);
-          if (evt._isHoliday) {
-            group.holidays.push(evt.summary || '祝日');
+        const s = new Date(evt.start.dateTime);
+        const startStr = parseDateOnlyStr(s);
+        const e = evt.end?.dateTime ? new Date(evt.end.dateTime) : s;
+        const isMidnightEnd = e.getHours() === 0 && e.getMinutes() === 0 && e.getSeconds() === 0;
+        const effectiveEndDate = isMidnightEnd ? new Date(e.getTime() - 1000) : e;
+        const endStr = parseDateOnlyStr(effectiveEndDate);
+
+        dayGroups.forEach(group => {
+          if (group.dateKey >= startStr && group.dateKey <= endStr) {
+            group.items.push(evt);
+            if (evt._isHoliday) {
+              group.holidays.push(evt.summary || '祝日');
+            }
           }
-        }
+        });
       }
     });
 
@@ -1007,7 +1037,7 @@
         eventsListEl.appendChild(emptyEl);
       } else {
         group.items.forEach(item => {
-          const itemEl = createEventItemElement(item);
+          const itemEl = createEventItemElement(item, group.dateKey);
           eventsListEl.appendChild(itemEl);
         });
       }
@@ -1055,7 +1085,7 @@
     }
   }
 
-  function createEventItemElement(item) {
+  function createEventItemElement(item, currentDateKey) {
     const itemEl = document.createElement('div');
     itemEl.className = 'event-item';
 
@@ -1068,12 +1098,35 @@
 
     let timeHtml = '';
     if (item.start?.date) {
-      timeHtml = '<span class="all-day-tag">終日</span>';
+      const startStr = item.start.date;
+      const endStr = item.end?.date || startStr;
+      const totalDays = Math.max(1, getDayDifference(startStr, endStr));
+      if (totalDays > 1) {
+        timeHtml = `<span class="all-day-tag">終日 (${totalDays}日間)</span>`;
+      } else {
+        timeHtml = '<span class="all-day-tag">終日</span>';
+      }
     } else if (item.start?.dateTime) {
       const s = new Date(item.start.dateTime);
       const e = item.end?.dateTime ? new Date(item.end.dateTime) : null;
-      const timeStr = e ? `${formatTime(s)} - ${formatTime(e)}` : formatTime(s);
-      timeHtml = `<span class="event-time">${timeStr}</span>`;
+      if (e) {
+        const sStr = parseDateOnlyStr(s);
+        const isMidnight = e.getHours() === 0 && e.getMinutes() === 0 && e.getSeconds() === 0;
+        const eStr = parseDateOnlyStr(isMidnight ? new Date(e.getTime() - 1000) : e);
+        if (sStr !== eStr && currentDateKey) {
+          if (currentDateKey === sStr) {
+            timeHtml = `<span class="event-time">${formatTime(s)}〜</span>`;
+          } else if (currentDateKey === eStr) {
+            timeHtml = `<span class="event-time">〜${formatTime(e)}</span>`;
+          } else {
+            timeHtml = '<span class="event-time">終日（継続）</span>';
+          }
+        } else {
+          timeHtml = `<span class="event-time">${formatTime(s)} - ${formatTime(e)}</span>`;
+        }
+      } else {
+        timeHtml = `<span class="event-time">${formatTime(s)}</span>`;
+      }
     }
 
     const summary = item.summary || '(タイトルなし)';
@@ -1099,7 +1152,7 @@
     if (item.htmlLink) {
       itemEl.style.cursor = 'pointer';
       itemEl.addEventListener('click', () => {
-        window.open(item.htmlLink, '_blank');
+        window.open(item.htmlLink, '_blank', 'noopener,noreferrer');
       });
     }
 

@@ -29,3 +29,11 @@ chrome.contextMenus.onClicked.addListener((info) => {
     chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
   }
 });
+
+// コンテンツスクリプトや拡張機能内からのメッセージハンドラー
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === 'openDashboard') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+  }
+});
+

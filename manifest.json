@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "TimeLayer - カレンダー地層ビュー",
   "version": "1.2.0",
+  "minimum_chrome_version": "116",
   "description": "今週と過去（1年前、2年前）のGoogleカレンダーの予定を地層のように重ねて比較・振り返りができるマルチビュー拡張機能（ダーク/ライトモード対応、サイドパネル・大画面ダッシュボード・Googleカレンダー直接埋め込み）",
   "icons": {
     "16": "icons/icon16.png",
@@ -29,8 +30,8 @@
     "contextMenus"
   ],
   "host_permissions": [
-    "https://www.googleapis.com/*",
-    "https://calendar.google.com/*"
+    "https://www.googleapis.com/calendar/*",
+    "https://oauth2.googleapis.com/*"
   ],
   "content_scripts": [
     {
@@ -49,12 +50,7 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "sidepanel.html",
-        "sidepanel.css",
-        "sidepanel.js",
-        "timelayer-core.js",
-        "dashboard.html",
-        "icons/*"
+        "sidepanel.html"
       ],
       "matches": [
         "https://calendar.google.com/*"
