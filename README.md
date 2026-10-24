@@ -1,7 +1,7 @@
 # TimeLayer - カレンダー地層ビュー (Calendar Strata Viewer)
 
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/intro/)
-[![Version](https://img.shields.io/badge/version-1.2.0-10b981.svg)](manifest.json)
+[![Version](https://img.shields.io/badge/version-1.3.0-10b981.svg)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > **「時間を地層のように重ねる」**  
