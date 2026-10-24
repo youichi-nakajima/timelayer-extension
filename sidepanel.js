@@ -26,6 +26,7 @@
   let selectedCalendarIds = new Set(); // Set of active calendar IDs
   let rawEventsCache = { present: [], '1yr': [], '2yr': [] }; // 検索用キャッシュ
   let currentSearchQuery = '';
+  let currentWeekStart = 'sunday'; // 'sunday' or 'monday'
 
   // DOM Elements
   const authView = document.getElementById('auth-view');
@@ -34,6 +35,7 @@
   const signoutBtn = document.getElementById('signout-btn');
   const refreshBtn = document.getElementById('refresh-btn');
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  const weekStartToggleBtn = document.getElementById('week-start-toggle-btn');
   const prevWeekBtn = document.getElementById('prev-week-btn');
   const nextWeekBtn = document.getElementById('next-week-btn');
   const todayWeekBtn = document.getElementById('today-week-btn');
@@ -94,24 +96,29 @@
   const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
 
   /**
-   * 指定したオフセット週の日曜日 00:00:00 〜 土曜日 23:59:59.999 の範囲を計算
+   * 指定したオフセット週の開始日 00:00:00 〜 終了日 23:59:59.999 の範囲を計算
+   * currentWeekStart が 'monday' の場合は月曜〜日曜、'sunday' の場合は日曜〜土曜
    */
   function getWeekRange(offsetWeeks = 0, yearOffset = 0) {
     const now = new Date();
     // 1. 今日の日付からオフセット週分ずらした日を計算
     const targetDate = new Date(now.getFullYear() - yearOffset, now.getMonth(), now.getDate() + (offsetWeeks * 7));
     
-    // 2. その週の日曜日を特定 (dayOfWeek: 0〜6)
-    const dayOfWeek = targetDate.getDay();
-    const sunday = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - dayOfWeek, 0, 0, 0, 0);
+    // 2. 週の開始曜日（0:日曜 または 1:月曜）に合わせて差分日数を計算
+    const startDayOfWeek = currentWeekStart === 'monday' ? 1 : 0;
+    let diff = targetDate.getDay() - startDayOfWeek;
+    if (diff < 0) {
+      diff += 7;
+    }
+    const weekStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - diff, 0, 0, 0, 0);
     
-    // 3. 土曜日 23:59:59.999
-    const saturday = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6, 23, 59, 59, 999);
+    // 3. 週の終了日（開始日の6日後 23:59:59.999）
+    const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6, 23, 59, 59, 999);
 
     return {
-      start: sunday,
-      end: saturday,
-      year: sunday.getFullYear()
+      start: weekStart,
+      end: weekEnd,
+      year: weekStart.getFullYear()
     };
   }
 
@@ -174,7 +181,16 @@
     }
   }
 
+  function updateWeekStartBtnUI() {
+    if (weekStartToggleBtn) {
+      const isMon = currentWeekStart === 'monday';
+      weekStartToggleBtn.textContent = isMon ? '月曜始' : '日曜始';
+      weekStartToggleBtn.title = isMon ? '週の開始: 月曜（クリックで日曜始まりに切替）' : '週の開始: 日曜（クリックで月曜始まりに切替）';
+    }
+  }
+
   function updateWeekNavUI() {
+    updateWeekStartBtnUI();
     const currentWeekRange = getWeekRange(currentOffsetWeeks, 0);
     weekRangeText.textContent = formatRangeText(currentWeekRange.start, currentWeekRange.end, true);
 
@@ -1096,6 +1112,20 @@
       }
     });
 
+    // 週開始曜日の切り替え（日曜 ⇄ 月曜）
+    if (weekStartToggleBtn) {
+      weekStartToggleBtn.addEventListener('click', () => {
+        const nextWeekStart = currentWeekStart === 'sunday' ? 'monday' : 'sunday';
+        currentWeekStart = nextWeekStart;
+        chrome.storage.local.set({ timelayer_week_start: nextWeekStart });
+        updateWeekStartBtnUI();
+        updateWeekNavUI();
+        if (currentAuthToken) {
+          scheduleLoadAllLayers();
+        }
+      });
+    }
+
     alertClose.addEventListener('click', hideAlert);
 
     // リダイレクトURIの表示とコピーボタンの処理
@@ -1142,9 +1172,13 @@
   }
 
   function initStorageSync() {
-    chrome.storage.local.get(['timelayer_theme'], (res) => {
+    chrome.storage.local.get(['timelayer_theme', 'timelayer_week_start'], (res) => {
       const savedTheme = res.timelayer_theme || 'dark';
       applyTheme(savedTheme);
+
+      currentWeekStart = res.timelayer_week_start === 'monday' ? 'monday' : 'sunday';
+      updateWeekStartBtnUI();
+      updateWeekNavUI();
     });
 
     // 他画面（大画面ダッシュボード等）での設定変更とリアルタイム同期
@@ -1165,6 +1199,19 @@
             : newIds;
           selectedCalendarIds = new Set(validIds);
           renderCalendarList();
+          if (currentAuthToken) {
+            scheduleLoadAllLayers();
+          }
+        }
+      }
+
+      // 3. 週の開始曜日の同期
+      if (changes.timelayer_week_start) {
+        const nextWeekStart = changes.timelayer_week_start.newValue === 'monday' ? 'monday' : 'sunday';
+        if (currentWeekStart !== nextWeekStart) {
+          currentWeekStart = nextWeekStart;
+          updateWeekStartBtnUI();
+          updateWeekNavUI();
           if (currentAuthToken) {
             scheduleLoadAllLayers();
           }

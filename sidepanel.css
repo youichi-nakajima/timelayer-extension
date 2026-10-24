@@ -521,7 +521,15 @@ body {
   flex: 1;
 }
 
-.week-nav-bar {
+.week-nav-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.week-nav-container .week-nav-bar {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -593,6 +601,19 @@ body {
 .pill-btn:hover {
   background: var(--bg-surface-elevated);
   color: var(--text-main);
+}
+
+.week-start-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0 9px;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
 }
 
 /* ==========================================================================

@@ -21,6 +21,7 @@
   let selectedCalendarIds = new Set();
   let rawEventsCache = { present: [], '1yr': [], '2yr': [] };
   let currentSearchQuery = '';
+  let currentWeekStart = 'sunday'; // 'sunday' or 'monday'
 
   // DOM Elements
   const authView = document.getElementById('auth-view');
@@ -29,6 +30,7 @@
   const signoutBtn = document.getElementById('signout-btn');
   const refreshBtn = document.getElementById('refresh-btn');
   const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  const weekStartToggleBtn = document.getElementById('week-start-toggle-btn');
   const prevWeekBtn = document.getElementById('prev-week-btn');
   const nextWeekBtn = document.getElementById('next-week-btn');
   const todayWeekBtn = document.getElementById('today-week-btn');
@@ -104,17 +106,25 @@
   // =========================================================================
   // Date Helpers
   // =========================================================================
+  /**
+   * 指定したオフセット週の開始日 00:00:00 〜 終了日 23:59:59.999 の範囲を計算
+   * currentWeekStart が 'monday' の場合は月曜〜日曜、'sunday' の場合は日曜〜土曜
+   */
   function getWeekRange(offsetWeeks = 0, yearOffset = 0) {
     const now = new Date();
     const targetDate = new Date(now.getFullYear() - yearOffset, now.getMonth(), now.getDate() + (offsetWeeks * 7));
-    const dayOfWeek = targetDate.getDay();
-    const sunday = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - dayOfWeek, 0, 0, 0, 0);
-    const saturday = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6, 23, 59, 59, 999);
+    const startDayOfWeek = currentWeekStart === 'monday' ? 1 : 0;
+    let diff = targetDate.getDay() - startDayOfWeek;
+    if (diff < 0) {
+      diff += 7;
+    }
+    const weekStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - diff, 0, 0, 0, 0);
+    const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6, 23, 59, 59, 999);
 
     return {
-      start: sunday,
-      end: saturday,
-      year: sunday.getFullYear()
+      start: weekStart,
+      end: weekEnd,
+      year: weekStart.getFullYear()
     };
   }
 
@@ -165,7 +175,16 @@
     }
   }
 
+  function updateWeekStartBtnUI() {
+    if (weekStartToggleBtn) {
+      const isMon = currentWeekStart === 'monday';
+      weekStartToggleBtn.textContent = isMon ? '月曜始' : '日曜始';
+      weekStartToggleBtn.title = isMon ? '週の開始: 月曜（クリックで日曜始まりに切替）' : '週の開始: 日曜（クリックで月曜始まりに切替）';
+    }
+  }
+
   function updateWeekNavUI() {
+    updateWeekStartBtnUI();
     const currentWeekRange = getWeekRange(currentOffsetWeeks, 0);
     weekRangeText.textContent = formatRangeText(currentWeekRange.start, currentWeekRange.end, true);
 
@@ -636,6 +655,14 @@
 
       const headerCol = document.querySelector(`.matrix-day-header[data-day="${day}"]`);
       if (headerCol) {
+        const dayOfWeek = d.getDay();
+        const nameEl = headerCol.querySelector('.day-name');
+        if (nameEl) {
+          nameEl.textContent = DAY_NAMES[dayOfWeek];
+          nameEl.className = 'day-name';
+          if (dayOfWeek === 0) nameEl.classList.add('day-sun');
+          if (dayOfWeek === 6) nameEl.classList.add('day-sat');
+        }
         const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         headerCol.classList.toggle('is-today', dKey === todayKey);
       }
@@ -1484,6 +1511,20 @@
       }
     });
 
+    // 週開始曜日の切り替え（日曜 ⇄ 月曜）
+    if (weekStartToggleBtn) {
+      weekStartToggleBtn.addEventListener('click', () => {
+        const nextWeekStart = currentWeekStart === 'sunday' ? 'monday' : 'sunday';
+        currentWeekStart = nextWeekStart;
+        chrome.storage.local.set({ timelayer_week_start: nextWeekStart });
+        updateWeekStartBtnUI();
+        updateWeekNavUI();
+        if (currentAuthToken) {
+          scheduleLoadAllLayers();
+        }
+      });
+    }
+
     alertClose.addEventListener('click', hideAlert);
 
     // Escapeキーでモーダルを閉じる
@@ -1537,9 +1578,13 @@
   }
 
   function initStorageSync() {
-    chrome.storage.local.get(['timelayer_theme'], (res) => {
+    chrome.storage.local.get(['timelayer_theme', 'timelayer_week_start'], (res) => {
       const savedTheme = res.timelayer_theme || 'dark';
       applyTheme(savedTheme);
+
+      currentWeekStart = res.timelayer_week_start === 'monday' ? 'monday' : 'sunday';
+      updateWeekStartBtnUI();
+      updateWeekNavUI();
     });
 
     // 他画面（サイドパネル等）での設定変更とリアルタイム同期
@@ -1560,6 +1605,19 @@
             : newIds;
           selectedCalendarIds = new Set(validIds);
           renderCalendarList();
+          if (currentAuthToken) {
+            scheduleLoadAllLayers();
+          }
+        }
+      }
+
+      // 3. 週の開始曜日の同期
+      if (changes.timelayer_week_start) {
+        const nextWeekStart = changes.timelayer_week_start.newValue === 'monday' ? 'monday' : 'sunday';
+        if (currentWeekStart !== nextWeekStart) {
+          currentWeekStart = nextWeekStart;
+          updateWeekStartBtnUI();
+          updateWeekNavUI();
           if (currentAuthToken) {
             scheduleLoadAllLayers();
           }
