@@ -135,25 +135,28 @@
     <!-- View 2: Main Strata View (Authenticated) -->
     <section id="main-view" class="view-panel main-view hidden">
       <!-- Week Navigation Controls -->
-      <nav class="week-nav-bar">
-        <button id="prev-week-btn" class="nav-btn" title="前の週" aria-label="前の週">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-        </button>
-        <div class="week-info">
-          <span id="week-relative-label" class="week-relative-tag">今週</span>
-          <span id="week-range-text" class="week-range-text">読み込み中...</span>
-        </div>
-        <div class="nav-right">
-          <button id="today-week-btn" class="pill-btn" title="今週に戻る">今週</button>
-          <button id="next-week-btn" class="nav-btn" title="次の週" aria-label="次の週">
+      <div class="week-nav-container">
+        <nav class="week-nav-bar">
+          <button id="prev-week-btn" class="nav-btn" title="前の週" aria-label="前の週">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="9 18 15 12 9 6"></polyline>
+              <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
           </button>
-        </div>
-      </nav>
+          <div class="week-info">
+            <span id="week-relative-label" class="week-relative-tag">今週</span>
+            <span id="week-range-text" class="week-range-text">読み込み中...</span>
+          </div>
+          <div class="nav-right">
+            <button id="today-week-btn" class="pill-btn" title="今週に戻る">今週</button>
+            <button id="next-week-btn" class="nav-btn" title="次の週" aria-label="次の週">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+        </nav>
+        <button id="week-start-toggle-btn" class="pill-btn week-start-btn" title="週の開始曜日を切り替え (日曜 / 月曜)">日曜始</button>
+      </div>
 
       <!-- Search Bar (Toggleable) -->
       <div id="search-bar-container" class="search-bar-container hidden">
