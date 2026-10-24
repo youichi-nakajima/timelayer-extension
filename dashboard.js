@@ -1514,7 +1514,7 @@
   }
 
   // =========================================================================
-  // Theme Management (Dark / Light)
+  // Theme & Storage Sync Management
   // =========================================================================
   let currentTheme = 'dark';
 
@@ -1526,16 +1526,44 @@
     }
   }
 
-  function initTheme() {
+  function areIdSetsEqual(setA, listB) {
+    if (!listB) return setA.size === 0;
+    const setB = new Set(listB);
+    if (setA.size !== setB.size) return false;
+    for (const item of setA) {
+      if (!setB.has(item)) return false;
+    }
+    return true;
+  }
+
+  function initStorageSync() {
     chrome.storage.local.get(['timelayer_theme'], (res) => {
       const savedTheme = res.timelayer_theme || 'dark';
       applyTheme(savedTheme);
     });
 
-    // 他画面（サイドパネル等）での切替とリアルタイム同期
+    // 他画面（サイドパネル等）での設定変更とリアルタイム同期
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === 'local' && changes.timelayer_theme) {
+      if (area !== 'local') return;
+
+      // 1. テーマの同期
+      if (changes.timelayer_theme) {
         applyTheme(changes.timelayer_theme.newValue);
+      }
+
+      // 2. カレンダー選択状態の同期
+      if (changes.timelayer_selected_calendar_ids) {
+        const newIds = changes.timelayer_selected_calendar_ids.newValue;
+        if (Array.isArray(newIds) && !areIdSetsEqual(selectedCalendarIds, newIds)) {
+          const validIds = availableCalendars.length > 0
+            ? newIds.filter(id => availableCalendars.some(c => c.id === id))
+            : newIds;
+          selectedCalendarIds = new Set(validIds);
+          renderCalendarList();
+          if (currentAuthToken) {
+            scheduleLoadAllLayers();
+          }
+        }
       }
     });
 
@@ -1550,7 +1578,7 @@
 
   // 初期化
   async function init() {
-    initTheme();
+    initStorageSync();
     setupEventListeners();
     updateWeekNavUI();
 
