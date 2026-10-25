@@ -192,14 +192,17 @@
       weekRelativeLabel.textContent = '今週';
       weekRelativeLabel.style.background = 'rgba(16, 185, 129, 0.15)';
       weekRelativeLabel.style.color = '#34d399';
+      if (todayWeekBtn) todayWeekBtn.classList.add('hidden');
     } else if (currentOffsetWeeks > 0) {
       weekRelativeLabel.textContent = `${currentOffsetWeeks}週後`;
       weekRelativeLabel.style.background = 'rgba(59, 130, 246, 0.15)';
       weekRelativeLabel.style.color = '#60a5fa';
+      if (todayWeekBtn) todayWeekBtn.classList.remove('hidden');
     } else {
       weekRelativeLabel.textContent = `${Math.abs(currentOffsetWeeks)}週前`;
       weekRelativeLabel.style.background = 'rgba(245, 158, 11, 0.15)';
       weekRelativeLabel.style.color = '#fbbf24';
+      if (todayWeekBtn) todayWeekBtn.classList.remove('hidden');
     }
   }
 

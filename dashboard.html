@@ -34,15 +34,15 @@
             <span id="week-relative-label" class="week-relative-tag">今週</span>
             <span id="week-range-text" class="week-range-text">読み込み中...</span>
           </div>
-          <div class="nav-right">
-            <button id="today-week-btn" class="pill-btn" title="今週に戻る">今週</button>
-            <button id="next-week-btn" class="nav-btn" title="次の週" aria-label="次の週">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
+          <button id="next-week-btn" class="nav-btn" title="次の週" aria-label="次の週">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
         </div>
+
+        <!-- Return to current week button (hidden when in current week) -->
+        <button id="today-week-btn" class="pill-btn today-return-btn hidden" title="今週に戻る">今週に戻る ↩</button>
 
         <!-- Week Start Toggle (outside week-nav-bar enclosure) -->
         <button id="week-start-toggle-btn" class="pill-btn week-start-btn" title="週の開始曜日を切り替え (日曜 / 月曜)">日曜始</button>
