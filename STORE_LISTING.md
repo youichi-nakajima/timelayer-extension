@@ -82,7 +82,20 @@ GitHub: https://github.com/youichi-nakajima/timelayer-extension
 
 ---
 
-## 2. プライバシーへの取り組み (Privacy Practices)
+### ■ グラフィック アセット (Graphic Assets)
+
+| アセット | ファイル / 準備方法 | サイズ |
+| :--- | :--- | :--- |
+| **アイコン** (必須) | `icons/icon128.png` | 128 × 128 px |
+| **スクリーンショット 1** (必須) | `preview-screenshots.html` (Scene 1: 大画面マトリクス) | 1280 × 800 px |
+| **スクリーンショット 2** (必須) | `preview-screenshots.html` (Scene 2: 3列同期カラム) | 1280 × 800 px |
+| **スクリーンショット 3** (必須) | `preview-screenshots.html` (Scene 3: サイドパネル) | 1280 × 800 px |
+| **スクリーンショット 4** (必須) | `preview-screenshots.html` (Scene 4: カレンダー連携) | 1280 × 800 px |
+| **小プロモタイル** (任意・推奨) | `preview-screenshots.html` (Scene 5: 小プロモタイル) | 440 × 280 px |
+
+---
+
+## 2. プライバシーへの取り組み (Privacy Practices タブ)
 
 ### ■ 単一目的の説明 (Single Purpose Description)
 *(※審査官向けに本拡張機能の目的を簡潔に説明)*
@@ -128,23 +141,9 @@ To access Google Calendar events and display a multi-layered comparative view co
 ---
 
 ### ■ プライバシーポリシーの URL (Privacy Policy URL)
-*(※リポジトリを GitHub で公開している場合の URL)*
 
 ```text
 https://github.com/youichi-nakajima/timelayer-extension/blob/main/PRIVACY_POLICY.md
 ```
 
----
-
-## 3. アセット提出の準備
-
-| アセット | ファイル / 準備方法 | サイズ |
-| :--- | :--- | :--- |
-| **アイコン** (必須) | `icons/icon128.png` | 128 × 128 px |
-| **スクリーンショット 1** (必須) | `preview-screenshots.html` (Scene 1: 大画面マトリクス) | 1280 × 800 px |
-| **スクリーンショット 2** (必須) | `preview-screenshots.html` (Scene 2: 3列同期カラム) | 1280 × 800 px |
-| **スクリーンショット 3** (必須) | `preview-screenshots.html` (Scene 3: サイドパネル) | 1280 × 800 px |
-| **スクリーンショット 4** (必須) | `preview-screenshots.html` (Scene 4: カレンダー連携) | 1280 × 800 px |
-| **小プロモタイル** (任意・推奨) | `preview-screenshots.html` (Scene 5: 小プロモタイル) | 440 × 280 px |
-| **ZIP パッケージ** (必須) | `dist/timelayer-v1.3.0.zip` (※ `.\build-package.ps1` で生成) | ZIP |
 
