@@ -75,6 +75,7 @@ GitHub: https://github.com/youichi-nakajima/timelayer-extension
 
 ### ■ カテゴリ (Category)
 - **メイン カテゴリ**: `仕事効率化` (Productivity)
+  - **サブカテゴリ**: `ワークフローと計画` (Workflow & Planning) ※おすすめ（または `ツール`）
 
 ### ■ 言語 (Language)
 - `日本語` (Japanese)
