@@ -112,6 +112,7 @@
   const openDashboardBtn = toolbar.querySelector('#timelayer-open-dashboard-btn');
   openDashboardBtn.addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: 'openDashboard' });
+    closeDrawer();
   });
 
   // Escapeキーで閉じる

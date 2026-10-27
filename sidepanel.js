@@ -1004,11 +1004,16 @@
       }
     });
 
-    // 大画面ダッシュボードを新規タブで開く
+    // 大画面ダッシュボードを新規タブで開く（開いた後にサイドパネルを自動クローズ）
     const openFullpageBtn = document.getElementById('open-fullpage-btn');
     if (openFullpageBtn) {
-      openFullpageBtn.addEventListener('click', () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+      openFullpageBtn.addEventListener('click', async () => {
+        try {
+          await chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+          window.close();
+        } catch (error) {
+          console.error('[TimeLayer] Failed to open dashboard tab:', error);
+        }
       });
     }
 
