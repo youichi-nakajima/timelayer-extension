@@ -148,9 +148,11 @@ https://github.com/youichi-nakajima/timelayer-extension/blob/main/PRIVACY_POLICY
 
 | アセット | ファイル / 準備方法 | サイズ |
 | :--- | :--- | :--- |
-| **アイコン** | `icons/icon128.png` | 128 × 128 px |
-| **スクリーンショット 1** | Chrome サイドパネルで予定が表示されている様子 | 1280 × 800 px |
-| **スクリーンショット 2** | 大画面パノラマビュー（週横組みマトリクス）の様子 | 1280 × 800 px |
-| **スクリーンショット 3** | 大画面パノラマビュー（3列カラム同期スクロール）の様子 | 1280 × 800 px |
-| **スクリーンショット 4** | Google カレンダー画面からスライドインした様子 | 1280 × 800 px |
-| **ZIP パッケージ** | `dist/timelayer-v1.3.0.zip` (※ `.\build-package.ps1` で生成) | ZIP |
+| **アイコン** (必須) | `icons/icon128.png` | 128 × 128 px |
+| **スクリーンショット 1** (必須) | `preview-screenshots.html` (Scene 1: 大画面マトリクス) | 1280 × 800 px |
+| **スクリーンショット 2** (必須) | `preview-screenshots.html` (Scene 2: 3列同期カラム) | 1280 × 800 px |
+| **スクリーンショット 3** (必須) | `preview-screenshots.html` (Scene 3: サイドパネル) | 1280 × 800 px |
+| **スクリーンショット 4** (必須) | `preview-screenshots.html` (Scene 4: カレンダー連携) | 1280 × 800 px |
+| **小プロモタイル** (任意・推奨) | `preview-screenshots.html` (Scene 5: 小プロモタイル) | 440 × 280 px |
+| **ZIP パッケージ** (必須) | `dist/timelayer-v1.3.0.zip` (※ `.\build-package.ps1` で生成) | ZIP |
+

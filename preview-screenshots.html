@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TimeLayer - Chrome ウェブストア用 スクリーンショット生成ツール (1280x800)</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="sidepanel.css">
+  <link rel="stylesheet" href="content.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* ==========================================================================
+       Screenshot Generator Studio - Styles
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+    }
+
+    body.studio-body {
+      margin: 0;
+      padding: 0;
+      background-color: #030712;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', Meiryo, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Top Control Bar */
+    .studio-controls {
+      position: sticky;
+      top: 0;
+      z-index: 99999;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .studio-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .studio-logo {
+      font-size: 16px;
+      font-weight: 700;
+      color: #10b981;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .studio-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .scene-selector {
+      display: flex;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px;
+      border-radius: 10px;
+      gap: 4px;
+    }
+
+    .scene-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scene-btn:hover {
+      color: #f8fafc;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .scene-btn.active {
+      color: #ffffff;
+      background: #2563eb;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+
+    .studio-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tool-toggle-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 6px 12px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .tool-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .download-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+    }
+
+    .download-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Viewport Container (1280x800 strict canvas) */
+    .studio-viewport {
+      padding: 20px 0 60px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .canvas-scaler-wrapper {
+      transform-origin: top center;
+      transition: transform 0.2s ease;
+      display: flex;
+      justify-content: center;
+    }
+
+    .canvas-card {
+      width: 1280px;
+      height: 800px;
+      min-width: 1280px;
+      min-height: 800px;
+      max-width: 1280px;
+      max-height: 800px;
+      overflow: hidden;
+      position: relative;
+      background: #0a0f1d;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      border-radius: 4px;
+    }
+
+    /* Size indicator tag */
+    .canvas-size-tag {
+      position: absolute;
+      top: -26px;
+      left: 0;
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 2px 8px;
+      border-radius: 4px 4px 0 0;
+      letter-spacing: 0.5px;
+    }
+
+    /* Toast Notification */
+    .studio-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #10b981;
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
+      z-index: 100000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .studio-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Store Headline Banner Overlay (Optional / Toggleable) */
+    .store-hero-banner {
+      width: 100%;
+      background: linear-gradient(90deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .store-hero-banner.hidden {
+      display: none;
+    }
+
+    .banner-title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .banner-app-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #34d399;
+    }
+
+    .banner-heading {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.2px;
+    }
+
+    .banner-heading span {
+      color: #38bdf8;
+    }
+
+    .banner-sub {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* Target UI Container inside Canvas */
+    .canvas-body {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+    }
+
+    /* Scene Specific Layouts */
+    .scene-container {
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+    }
+
+    .scene-container.active {
+      display: flex;
+    }
+
+    /* Scene 3: Side Panel in Browser Mock */
+    .browser-mock {
+      width: 100%;
+      height: 100%;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .browser-chrome-bar {
+      height: 38px;
+      background: #1e293b;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .browser-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .browser-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #eab308; }
+    .dot-green { background: #22c55e; }
+
+    .browser-url-bar {
+      flex: 1;
+      max-width: 600px;
+      height: 24px;
+      background: #0f172a;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      font-size: 11px;
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .browser-content-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .mock-webpage {
+      flex: 1;
+      background: #090d16;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      opacity: 0.85;
+    }
+
+    .mock-article-title {
+      height: 32px;
+      width: 60%;
+      background: #1e293b;
+      border-radius: 6px;
+    }
+
+    .mock-article-para {
+      height: 14px;
+      width: 90%;
+      background: #1e293b;
+      border-radius: 4px;
+      opacity: 0.5;
+    }
+
+    .mock-article-box {
+      height: 180px;
+      width: 100%;
+      background: rgba(30, 41, 59, 0.4);
+      border-radius: 8px;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .mock-sidepanel-wrapper {
+      width: 380px;
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-primary, #0a0f1d);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Scene 4: Google Calendar Mock with Drawer */
+    .gcal-mock-container {
+      width: 100%;
+      height: 100%;
+      background: #131722;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gcal-top-bar {
+      height: 48px;
+      background: #1f2937;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+    }
+
+    .gcal-grid-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: 32px repeat(5, 1fr);
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1px;
+    }
+
+    .gcal-grid-cell {
+      background: #111827;
+      padding: 6px;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .gcal-grid-header {
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* Embedded drawer preview */
+    .studio-drawer-open {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 420px;
+      height: 100%;
+      background: #0a0f1d;
+      border-left: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+
+    .floating-launcher-mock {
+      position: absolute;
+      bottom: 24px;
+      right: 440px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      color: #34d399;
+      padding: 8px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Event Item Styling for clean non-overlapping rendering */
+    .event-item {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 3px !important;
+      padding: 5px 8px !important;
+      background: var(--bg-surface, #1e293b) !important;
+      border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08)) !important;
+      border-left: 3.5px solid var(--event-cal-color, #3b82f6) !important;
+      border-radius: 6px !important;
+      box-sizing: border-box !important;
+      margin-bottom: 5px !important;
+      transition: all 0.2s ease;
+    }
+
+    .event-item:last-child {
+      margin-bottom: 0 !important;
+    }
+
+    .event-item.is-allday {
+      background: rgba(59, 130, 246, 0.15) !important;
+      border-color: rgba(59, 130, 246, 0.3) !important;
+      border-left-color: #3b82f6 !important;
+    }
+
+    .event-title-full {
+      font-size: 11.5px !important;
+      font-weight: 600 !important;
+      color: var(--text-main, #f8fafc) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      line-height: 1.35 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: block !important;
+    }
+
+    .event-meta-line {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 4px !important;
+      line-height: 1 !important;
+    }
+
+    .event-meta-left {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+
+    .event-time {
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      color: #94a3b8 !important;
+      font-feature-settings: "tnum" !important;
+      line-height: 1 !important;
+    }
+
+    .event-cal-pill {
+      font-size: 8.5px !important;
+      font-weight: 700 !important;
+      padding: 1px 5px !important;
+      border-radius: 3px !important;
+      color: #cbd5e1 !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      max-width: 70px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      flex-shrink: 0 !important;
+      line-height: 1.2 !important;
+    }
+
+    .allday-badge {
+      font-size: 8.5px !important;
+      font-weight: 800 !important;
+      background: #3b82f6 !important;
+      color: #ffffff !important;
+      padding: 1px 4px !important;
+      border-radius: 3px !important;
+      line-height: 1 !important;
+    }
+
+    /* Small Promo Tile (440x280) Styling */
+    .promo-tile-card {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #070b14 0%, #0f172a 45%, #15102a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      padding: 24px 20px;
+      user-select: none;
+    }
+
+    .promo-glow-bg {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 320px;
+      height: 200px;
+      background: radial-gradient(ellipse at center, rgba(16, 185, 129, 0.28) 0%, rgba(168, 85, 247, 0.15) 50%, transparent 75%);
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .promo-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .promo-badge {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 9px;
+      border-radius: 9999px;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .promo-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .promo-strata-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 3.5px;
+      width: 22px;
+    }
+
+    .promo-strata-bars .strata-bar {
+      height: 4px;
+      border-radius: 9999px;
+    }
+
+    .promo-title {
+      font-size: 36px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      line-height: 1;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .promo-subtitle {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 16px;
+      letter-spacing: 0.2px;
+    }
+
+    .promo-lead {
+      font-size: 14px;
+      color: #e2e8f0;
+      margin-bottom: 18px;
+      line-height: 1.45;
+      max-width: 380px;
+    }
+
+    .promo-lead strong {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    .promo-features-chips {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .promo-chip {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+    }
+
+    .promo-chip.chip-1 {
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .promo-chip.chip-2 {
+      border-color: rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .promo-chip.chip-3 {
+      border-color: rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+      background: rgba(168, 85, 247, 0.08);
+    }
+  </style>
+</head>
+<body class="studio-body">
+
+  <!-- Top Studio Control Bar -->
+  <header class="studio-controls">
+    <div class="studio-brand">
+      <span class="studio-logo">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#10b981" stroke-width="2.5">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="17" y2="12"/>
+          <line x1="3" y1="18" x2="13" y2="18"/>
+        </svg>
+        TimeLayer
+      </span>
+      <span class="studio-badge">1280 × 800 キャプチャスタジオ</span>
+    </div>
+
+    <!-- Scene Selector Tabs -->
+    <div class="scene-selector">
+      <button class="scene-btn active" data-scene="1">
+        <span>🪐</span> 1. 大画面マトリクス
+      </button>
+      <button class="scene-btn" data-scene="2">
+        <span>📊</span> 2. 3列同期カラム
+      </button>
+      <button class="scene-btn" data-scene="3">
+        <span>📌</span> 3. Chrome サイドパネル
+      </button>
+      <button class="scene-btn" data-scene="4">
+        <span>🚀</span> 4. Google カレンダー連携
+      </button>
+      <button class="scene-btn" data-scene="5">
+        <span>🎁</span> 5. 小プロモ (440x280)
+      </button>
+    </div>
+
+    <div class="studio-actions">
+      <!-- Zoom / Fit Selector -->
+      <div class="scene-selector" style="background: rgba(255, 255, 255, 0.05);">
+        <button id="zoom-fit-btn" class="scene-btn active" style="padding: 4px 8px; font-size: 11px;">Fit 画面に合わせる</button>
+        <button id="zoom-100-btn" class="scene-btn" style="padding: 4px 8px; font-size: 11px;">100% (等倍)</button>
+        <button id="zoom-80-btn" class="scene-btn" style="padding: 4px 8px; font-size: 11px;">80%</button>
+      </div>
+
+      <button id="toggle-banner-btn" class="tool-toggle-btn" title="上部のキャッチコピー帯のON/OFF">
+        🏷️ 帯: ON
+      </button>
+      <button id="toggle-theme-btn" class="tool-toggle-btn" title="ダーク / ライトモードの切り替え">
+        🌙 テーマ
+      </button>
+      <button id="show-guide-btn" class="tool-toggle-btn" title="Chrome DevTools (F12) での手動撮影ガイド">
+        💡 手動撮影ガイド
+      </button>
+      <button id="download-png-btn" class="download-btn">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        1280x800 PNG 保存
+      </button>
+    </div>
+  </header>
+
+  <!-- Viewport Area -->
+  <main class="studio-viewport">
+    <div class="canvas-scaler-wrapper" id="canvas-scaler">
+      <div id="capture-canvas" class="canvas-card">
+        <div class="canvas-size-tag" id="canvas-size-tag">📏 厳密固定: 1280 × 800 px</div>
+
+        <!-- Store Hero Banner Overlay -->
+        <div id="store-banner" class="store-hero-banner">
+        <div class="banner-title-area">
+          <div class="banner-app-badge">
+            <span>✨</span>
+            <span>TimeLayer</span>
+          </div>
+          <div class="banner-heading" id="banner-text">
+            時間の地層を重ねる。<span>現在・1年前・2年前</span> の予定を瞬時に一覧比較。
+          </div>
+        </div>
+        <div class="banner-sub" id="banner-sub">
+          週横組みマトリクスビュー (Matrix View)
+        </div>
+      </div>
+
+      <!-- Canvas Body (Holds scenes) -->
+      <div class="canvas-body" id="canvas-body">
+
+        <!-- ====================================================================
+             SCENE 1: 大画面パノラマダッシュボード（週横組みマトリクスビュー）
+             ==================================================================== -->
+        <div id="scene-1" class="scene-container active">
+          <div class="dashboard-container" style="height: 100%; border: none;">
+            <header class="dashboard-header" style="padding: 10px 18px;">
+              <div class="dashboard-brand">
+                <div class="brand-strata-bars">
+                  <span class="strata-bar strata-1"></span>
+                  <span class="strata-bar strata-2"></span>
+                  <span class="strata-bar strata-3"></span>
+                </div>
+                <div class="brand-titles">
+                  <h1 class="brand-main">TimeLayer</h1>
+                  <span class="brand-sub">カレンダー地層ダッシュボード</span>
+                </div>
+              </div>
+
+              <!-- Week Navigator Mock -->
+              <div class="week-navigator">
+                <div class="week-nav-controls">
+                  <button class="nav-btn">&larr;</button>
+                  <span class="week-range-text">2026年 10月25日 〜 10月31日</span>
+                  <button class="nav-btn">&rarr;</button>
+                  <button class="today-btn">今週へ戻る</button>
+                </div>
+                <div class="start-day-toggle">
+                  <button class="start-day-btn active">日始</button>
+                  <button class="start-day-btn">月始</button>
+                </div>
+              </div>
+
+              <!-- View Switcher -->
+              <div class="view-switcher-bar">
+                <div class="view-mode-toggle">
+                  <button class="view-toggle-btn active">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                    週横組み (Matrix)
+                  </button>
+                  <button class="view-toggle-btn">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+                    3列カラム (Columns)
+                  </button>
+                </div>
+              </div>
+
+              <div class="header-actions">
+                <div class="header-search-box" style="width: 190px;">
+                  <svg class="search-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" class="search-input" value="定例" style="font-size: 11px;">
+                  <span class="search-match-count">3件</span>
+                </div>
+              </div>
+            </header>
+
+            <!-- Matrix View Content -->
+            <main class="dashboard-main" style="padding: 10px 18px 14px 18px;">
+              <div class="matrix-view" style="display: block;">
+                <div class="matrix-table" style="min-width: 100%;">
+                  <!-- Header Row -->
+                  <div class="matrix-header-row">
+                    <div class="matrix-corner-cell"><span class="matrix-corner-tag">地層 \ 曜日</span></div>
+                    <div class="matrix-day-header"><span class="day-name day-sun">日</span><span class="day-sub">10/25</span></div>
+                    <div class="matrix-day-header"><span class="day-name">月</span><span class="day-sub">10/26</span></div>
+                    <div class="matrix-day-header"><span class="day-name">火</span><span class="day-sub">10/27</span></div>
+                    <div class="matrix-day-header"><span class="day-name">水</span><span class="day-sub">10/28</span></div>
+                    <div class="matrix-day-header"><span class="day-name">木</span><span class="day-sub">10/29</span></div>
+                    <div class="matrix-day-header"><span class="day-name">金</span><span class="day-sub">10/30</span></div>
+                    <div class="matrix-day-header"><span class="day-name day-sat">土</span><span class="day-sub">10/31</span></div>
+                  </div>
+
+                  <!-- Layer 1: Present (Emerald) -->
+                  <div class="matrix-strata-row layer-theme-present">
+                    <div class="matrix-strata-label-cell">
+                      <span class="layer-pill">Layer 01</span>
+                      <span class="matrix-strata-title">表層 (現在)</span>
+                      <span class="matrix-strata-sub">2026年</span>
+                      <span class="event-count-badge">8件</span>
+                    </div>
+                    <div class="matrix-strata-content-area">
+                      <div class="matrix-single-days-row">
+                        <div class="matrix-day-cell"></div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">新機能 チーム定例</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">09:30</span>
+                              <span class="event-cal-pill">業務</span>
+                            </div>
+                          </div>
+                          <div class="event-item" style="--event-cal-color: #10b981;">
+                            <div class="event-title-full">Q4 ロードマップ策定</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">14:00</span>
+                              <span class="event-cal-pill">メイン</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #8b5cf6;">
+                            <div class="event-title-full">デザインシステム策定</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">11:00</span>
+                              <span class="event-cal-pill">デザイン</span>
+                            </div>
+                          </div>
+                          <div class="event-item" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">1on1 ミーティング</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">16:30</span>
+                              <span class="event-cal-pill">業務</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #f59e0b;">
+                            <div class="event-title-full">ランチミーティング</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">12:00</span>
+                              <span class="event-cal-pill">プライベート</span>
+                            </div>
+                          </div>
+                          <div class="event-item" style="--event-cal-color: #10b981;">
+                            <div class="event-title-full">TimeLayer v1.3 公開</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">15:00</span>
+                              <span class="event-cal-pill">開発</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">パートナー企業定例</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">10:00</span>
+                              <span class="event-cal-pill">業務</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #10b981;">
+                            <div class="event-title-full">スプリント振り返り</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">14:00</span>
+                              <span class="event-cal-pill">メイン</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #f59e0b;">
+                            <div class="event-title-full">テニススクール</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">11:00</span>
+                              <span class="event-cal-pill">プライベート</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Layer 2: 1 Year Ago (Warm Amber) -->
+                  <div class="matrix-strata-row layer-theme-1yr">
+                    <div class="matrix-strata-label-cell">
+                      <span class="layer-pill">Layer 02</span>
+                      <span class="matrix-strata-title">中間層 (1年前)</span>
+                      <span class="matrix-strata-sub">2025年</span>
+                      <span class="event-count-badge">6件</span>
+                    </div>
+                    <div class="matrix-strata-content-area">
+                      <div class="matrix-single-days-row">
+                        <div class="matrix-day-cell"></div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">旧システム移行定例</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">10:00</span>
+                              <span class="event-cal-pill">業務</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #8b5cf6;">
+                            <div class="event-title-full">仕様策定ワークショップ</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">13:00</span>
+                              <span class="event-cal-pill">デザイン</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">インフラ負荷対策MTG</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">11:00</span>
+                              <span class="event-cal-pill">業務</span>
+                            </div>
+                          </div>
+                          <div class="event-item" style="--event-cal-color: #10b981;">
+                            <div class="event-title-full">社内LT大会</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">18:00</span>
+                              <span class="event-cal-pill">メイン</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell"></div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">来期採用計画</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">16:00</span>
+                              <span class="event-cal-pill">業務</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #f59e0b;">
+                            <div class="event-title-full">読書会・カフェ</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">14:00</span>
+                              <span class="event-cal-pill">個人</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Layer 3: 2 Years Ago (Cosmic Amethyst) -->
+                  <div class="matrix-strata-row layer-theme-2yr">
+                    <div class="matrix-strata-label-cell">
+                      <span class="layer-pill">Layer 03</span>
+                      <span class="matrix-strata-title">深層 (2年前)</span>
+                      <span class="matrix-strata-sub">2024年</span>
+                      <span class="event-count-badge">5件</span>
+                    </div>
+                    <div class="matrix-strata-content-area">
+                      <div class="matrix-single-days-row">
+                        <div class="matrix-day-cell"></div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item is-allday" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">🏕️ 全社キックオフ合宿</div>
+                            <div class="event-meta-line">
+                              <span class="allday-badge">終日</span>
+                              <span class="event-cal-pill">全社</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #8b5cf6;">
+                            <div class="event-title-full">アイデアソン発表会</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">10:00</span>
+                              <span class="event-cal-pill">企画</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #10b981;">
+                            <div class="event-title-full">💡 TimeLayer 構想立案</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">14:00</span>
+                              <span class="event-cal-pill">開発</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell"></div>
+                        <div class="matrix-day-cell">
+                          <div class="event-item" style="--event-cal-color: #f59e0b;">
+                            <div class="event-title-full">定期健康診断</div>
+                            <div class="event-meta-line">
+                              <span class="event-time">15:00</span>
+                              <span class="event-cal-pill">メイン</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="matrix-day-cell"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </main>
+
+            <!-- Bottom Status -->
+            <footer class="dashboard-footer">
+              <div class="footer-left">
+                <span class="footer-status">Google Calendar API v3 Active</span>
+                <span class="footer-divider">•</span>
+                <span class="footer-detail">3カレンダー選択中 (メイン, 業務, 祝日)</span>
+              </div>
+              <div class="footer-right">
+                <a href="#" class="coffee-link"><span class="coffee-icon">☕</span><span class="coffee-text">Buy me a coffee</span></a>
+                <span class="footer-divider">•</span>
+                <span class="last-updated">リアルタイム同期中</span>
+              </div>
+            </footer>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             SCENE 2: 大画面パノラマダッシュボード（3列同期カラムビュー）
+             ==================================================================== -->
+        <div id="scene-2" class="scene-container">
+          <div class="dashboard-container" style="height: 100%; border: none;">
+            <header class="dashboard-header" style="padding: 10px 18px;">
+              <div class="dashboard-brand">
+                <div class="brand-strata-bars">
+                  <span class="strata-bar strata-1"></span>
+                  <span class="strata-bar strata-2"></span>
+                  <span class="strata-bar strata-3"></span>
+                </div>
+                <div class="brand-titles">
+                  <h1 class="brand-main">TimeLayer</h1>
+                  <span class="brand-sub">カレンダー地層ダッシュボード</span>
+                </div>
+              </div>
+
+              <div class="week-navigator">
+                <div class="week-nav-controls">
+                  <button class="nav-btn">&larr;</button>
+                  <span class="week-range-text">2026年 10月25日 〜 10月31日</span>
+                  <button class="nav-btn">&rarr;</button>
+                  <button class="today-btn">今週へ戻る</button>
+                </div>
+              </div>
+
+              <div class="view-switcher-bar">
+                <div class="view-mode-toggle">
+                  <button class="view-toggle-btn">週横組み (Matrix)</button>
+                  <button class="view-toggle-btn active">3列カラム (Columns)</button>
+                </div>
+              </div>
+            </header>
+
+            <main class="dashboard-main" style="padding: 10px 18px 14px 18px;">
+              <div class="panoramic-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; height: 100%;">
+                
+                <!-- Column 1: Present -->
+                <div class="panoramic-column layer-theme-present">
+                  <div class="column-header">
+                    <span class="layer-pill">Layer 01</span>
+                    <span class="column-title">表層 (現在)</span>
+                    <span class="column-date-range">2026年 10/25 - 10/31</span>
+                    <span class="event-count-badge">8件</span>
+                  </div>
+                  <div class="column-timeline" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/26 (月)</span></div>
+                      <div class="event-item" style="--event-cal-color: #3b82f6;">
+                        <div class="event-title-full">新機能 チーム定例</div>
+                        <div class="event-meta-line"><span class="event-time">09:30</span><span class="event-cal-pill">業務</span></div>
+                      </div>
+                      <div class="event-item" style="--event-cal-color: #10b981;">
+                        <div class="event-title-full">Q4 ロードマップ策定</div>
+                        <div class="event-meta-line"><span class="event-time">14:00</span><span class="event-cal-pill">メイン</span></div>
+                      </div>
+                    </div>
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/27 (火)</span></div>
+                      <div class="event-item" style="--event-cal-color: #8b5cf6;">
+                        <div class="event-title-full">デザインシステム策定レビュー</div>
+                        <div class="event-meta-line"><span class="event-time">11:00</span><span class="event-cal-pill">デザイン</span></div>
+                      </div>
+                      <div class="event-item" style="--event-cal-color: #3b82f6;">
+                        <div class="event-title-full">1on1 ミーティング</div>
+                        <div class="event-meta-line"><span class="event-time">16:30</span><span class="event-cal-pill">業務</span></div>
+                      </div>
+                    </div>
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/28 (水)</span></div>
+                      <div class="event-item" style="--event-cal-color: #10b981;">
+                        <div class="event-title-full">TimeLayer v1.3 リリース</div>
+                        <div class="event-meta-line"><span class="event-time">15:00</span><span class="event-cal-pill">開発</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Column 2: 1 Year Ago -->
+                <div class="panoramic-column layer-theme-1yr">
+                  <div class="column-header">
+                    <span class="layer-pill">Layer 02</span>
+                    <span class="column-title">中間層 (1年前)</span>
+                    <span class="column-date-range">2025年 10/26 - 11/01</span>
+                    <span class="event-count-badge">6件</span>
+                  </div>
+                  <div class="column-timeline" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/27 (月)</span></div>
+                      <div class="event-item" style="--event-cal-color: #3b82f6;">
+                        <div class="event-title-full">旧システム移行定例</div>
+                        <div class="event-meta-line"><span class="event-time">10:00</span><span class="event-cal-pill">業務</span></div>
+                      </div>
+                    </div>
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/28 (火)</span></div>
+                      <div class="event-item" style="--event-cal-color: #8b5cf6;">
+                        <div class="event-title-full">仕様策定ワークショップ</div>
+                        <div class="event-meta-line"><span class="event-time">13:00</span><span class="event-cal-pill">デザイン</span></div>
+                      </div>
+                    </div>
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/29 (水)</span></div>
+                      <div class="event-item" style="--event-cal-color: #3b82f6;">
+                        <div class="event-title-full">インフラ負荷対策MTG</div>
+                        <div class="event-meta-line"><span class="event-time">11:00</span><span class="event-cal-pill">業務</span></div>
+                      </div>
+                      <div class="event-item" style="--event-cal-color: #10b981;">
+                        <div class="event-title-full">社内LT大会</div>
+                        <div class="event-meta-line"><span class="event-time">18:00</span><span class="event-cal-pill">メイン</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Column 3: 2 Years Ago -->
+                <div class="panoramic-column layer-theme-2yr">
+                  <div class="column-header">
+                    <span class="layer-pill">Layer 03</span>
+                    <span class="column-title">深層 (2年前)</span>
+                    <span class="column-date-range">2024年 10/27 - 11/02</span>
+                    <span class="event-count-badge">5件</span>
+                  </div>
+                  <div class="column-timeline" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/28 (月)</span></div>
+                      <div class="event-item is-allday" style="--event-cal-color: #3b82f6;">
+                        <div class="event-title-full">🏕️ 全社キックオフ合宿</div>
+                        <div class="event-meta-line"><span class="allday-badge">終日</span><span class="event-cal-pill">全社</span></div>
+                      </div>
+                    </div>
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/29 (火)</span></div>
+                      <div class="event-item" style="--event-cal-color: #8b5cf6;">
+                        <div class="event-title-full">アイデアソン発表会</div>
+                        <div class="event-meta-line"><span class="event-time">10:00</span><span class="event-cal-pill">企画</span></div>
+                      </div>
+                    </div>
+                    <div class="day-group">
+                      <div class="day-header"><span class="day-name">10/30 (水)</span></div>
+                      <div class="event-item" style="--event-cal-color: #10b981;">
+                        <div class="event-title-full">💡 TimeLayer 構想立案</div>
+                        <div class="event-meta-line"><span class="event-time">14:00</span><span class="event-cal-pill">開発</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </main>
+
+            <footer class="dashboard-footer">
+              <div class="footer-left">
+                <span class="footer-status">Google Calendar API v3 Active</span>
+                <span class="footer-divider">•</span>
+                <span class="footer-detail">曜日ライン完全同期 & 連動スクロール</span>
+              </div>
+              <div class="footer-right">
+                <a href="#" class="coffee-link"><span class="coffee-icon">☕</span><span class="coffee-text">Buy me a coffee</span></a>
+              </div>
+            </footer>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             SCENE 3: Chrome サイドパネルビュー（ブラウザ作業中の実演）
+             ==================================================================== -->
+        <div id="scene-3" class="scene-container">
+          <div class="browser-mock">
+            <div class="browser-chrome-bar">
+              <div class="browser-dots">
+                <span class="browser-dot dot-red"></span>
+                <span class="browser-dot dot-yellow"></span>
+                <span class="browser-dot dot-green"></span>
+              </div>
+              <div class="browser-url-bar">
+                <span>🔒 https://workspace.google.com/resources/tasks-and-notes</span>
+              </div>
+              <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 11px; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 6px; border-radius: 4px;">TimeLayer 実行中</span>
+              </div>
+            </div>
+
+            <div class="browser-content-area">
+              <!-- Left Webpage Mock -->
+              <div class="mock-webpage">
+                <div class="mock-article-title"></div>
+                <div class="mock-article-para" style="width: 75%;"></div>
+                <div class="mock-article-para" style="width: 85%;"></div>
+                <div class="mock-article-para" style="width: 60%;"></div>
+                <div class="mock-article-box"></div>
+                <div class="mock-article-para" style="width: 80%;"></div>
+                <div class="mock-article-para" style="width: 70%;"></div>
+              </div>
+
+              <!-- Right Sidepanel -->
+              <div class="mock-sidepanel-wrapper">
+                <div class="app-container" style="height: 100%;">
+                  <header class="app-header">
+                    <div class="brand">
+                      <div class="brand-icon">
+                        <span class="strata-bar strata-1"></span>
+                        <span class="strata-bar strata-2"></span>
+                        <span class="strata-bar strata-3"></span>
+                      </div>
+                      <div class="brand-text">
+                        <h1 class="brand-title">TimeLayer</h1>
+                        <span class="brand-subtitle">時間の地層ビューア</span>
+                      </div>
+                    </div>
+                    <div class="header-actions">
+                      <button class="icon-btn" title="大画面ダッシュボード"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+                      <button class="icon-btn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></svg></button>
+                    </div>
+                  </header>
+
+                  <section class="main-content" style="padding: 10px; flex: 1; overflow-y: auto;">
+                    <div class="layers-container" style="display: flex; flex-direction: column; gap: 10px;">
+                      
+                      <!-- Layer 1 -->
+                      <article class="layer-card layer-theme-present">
+                        <div class="layer-header">
+                          <span class="layer-pill">Layer 01</span>
+                          <span class="layer-title">表層 (現在)</span>
+                          <span class="event-count-badge">今週</span>
+                        </div>
+                        <div class="events-timeline" style="padding: 4px;">
+                          <div class="event-item" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">新機能 チーム定例</div>
+                            <div class="event-meta-line"><span class="event-time">09:30</span><span class="event-cal-pill">業務</span></div>
+                          </div>
+                          <div class="event-item" style="--event-cal-color: #10b981;">
+                            <div class="event-title-full">Q4 ロードマップ策定</div>
+                            <div class="event-meta-line"><span class="event-time">14:00</span><span class="event-cal-pill">メイン</span></div>
+                          </div>
+                        </div>
+                      </article>
+
+                      <!-- Layer 2 -->
+                      <article class="layer-card layer-theme-1yr">
+                        <div class="layer-header">
+                          <span class="layer-pill">Layer 02</span>
+                          <span class="layer-title">中間層 (1年前)</span>
+                          <span class="event-count-badge">2025年</span>
+                        </div>
+                        <div class="events-timeline" style="padding: 4px;">
+                          <div class="event-item" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">旧システム移行定例</div>
+                            <div class="event-meta-line"><span class="event-time">10:00</span><span class="event-cal-pill">業務</span></div>
+                          </div>
+                          <div class="event-item" style="--event-cal-color: #10b981;">
+                            <div class="event-title-full">社内LT大会</div>
+                            <div class="event-meta-line"><span class="event-time">18:00</span><span class="event-cal-pill">メイン</span></div>
+                          </div>
+                        </div>
+                      </article>
+
+                      <!-- Layer 3 -->
+                      <article class="layer-card layer-theme-2yr">
+                        <div class="layer-header">
+                          <span class="layer-pill">Layer 03</span>
+                          <span class="layer-title">深層 (2年前)</span>
+                          <span class="event-count-badge">2024年</span>
+                        </div>
+                        <div class="events-timeline" style="padding: 4px;">
+                          <div class="event-item is-allday" style="--event-cal-color: #3b82f6;">
+                            <div class="event-title-full">🏕️ 全社合宿</div>
+                            <div class="event-meta-line"><span class="allday-badge">終日</span><span class="event-cal-pill">全社</span></div>
+                          </div>
+                          <div class="event-item" style="--event-cal-color: #10b981;">
+                            <div class="event-title-full">💡 TimeLayer 構想立案</div>
+                            <div class="event-meta-line"><span class="event-time">14:00</span><span class="event-cal-pill">開発</span></div>
+                          </div>
+                        </div>
+                      </article>
+
+                    </div>
+                  </section>
+
+                  <footer class="app-footer">
+                    <span class="footer-status">Google Calendar API v3</span>
+                    <a href="#" class="coffee-link"><span class="coffee-icon">☕</span><span class="coffee-text">応援</span></a>
+                  </footer>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             SCENE 4: Google カレンダー直接埋め込み（ドロワー展開）
+             ==================================================================== -->
+        <div id="scene-4" class="scene-container">
+          <div class="gcal-mock-container">
+            <div class="gcal-top-bar">
+              <span style="font-size: 18px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+                <span style="color: #4285F4;">📅</span> Google カレンダー
+              </span>
+              <span style="background: rgba(255, 255, 255, 0.1); padding: 4px 10px; border-radius: 6px; font-size: 12px; color: #94a3b8;">月表示</span>
+            </div>
+
+            <!-- GCal Grid Mock -->
+            <div class="gcal-grid-body">
+              <div class="gcal-grid-header">日</div>
+              <div class="gcal-grid-header">月</div>
+              <div class="gcal-grid-header">火</div>
+              <div class="gcal-grid-header">水</div>
+              <div class="gcal-grid-header">木</div>
+              <div class="gcal-grid-header">金</div>
+              <div class="gcal-grid-header">土</div>
+              <!-- Rows of cells -->
+              <div class="gcal-grid-cell">25</div>
+              <div class="gcal-grid-cell">26<br><span style="background:#0284c7; color:#fff; padding:1px 4px; border-radius:3px; display:inline-block; margin-top:4px;">09:30 チーム定例</span></div>
+              <div class="gcal-grid-cell">27</div>
+              <div class="gcal-grid-cell">28</div>
+              <div class="gcal-grid-cell">29</div>
+              <div class="gcal-grid-cell">30</div>
+              <div class="gcal-grid-cell">31</div>
+              <div class="gcal-grid-cell">1</div>
+              <div class="gcal-grid-cell">2</div>
+              <div class="gcal-grid-cell">3</div>
+              <div class="gcal-grid-cell">4</div>
+              <div class="gcal-grid-cell">5</div>
+              <div class="gcal-grid-cell">6</div>
+              <div class="gcal-grid-cell">7</div>
+            </div>
+
+            <!-- Floating Launcher Mock (shown in background) -->
+            <div class="floating-launcher-mock">
+              <span>🥞</span> TimeLayer 地層ビュー
+            </div>
+
+            <!-- Slide-in Drawer Mock -->
+            <div class="studio-drawer-open">
+              <div class="timelayer-drawer-toolbar">
+                <div class="timelayer-drawer-brand">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="17" y2="12"/><line x1="3" y1="18" x2="13" y2="18"/></svg>
+                  <span>TimeLayer 地層ビュー（スライドイン）</span>
+                </div>
+                <div class="timelayer-drawer-actions">
+                  <button class="timelayer-tool-btn" title="全画面"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></button>
+                  <button class="timelayer-tool-btn">&times;</button>
+                </div>
+              </div>
+
+              <!-- Drawer content -->
+              <div style="flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;">
+                <div class="layer-card layer-theme-present">
+                  <div class="layer-header"><span class="layer-pill">Layer 01</span><span class="layer-title">表層 (現在)</span></div>
+                  <div class="events-timeline" style="padding: 4px;">
+                    <div class="event-item" style="--event-cal-color: #3b82f6;">
+                      <div class="event-title-full">新機能 チーム定例</div>
+                      <div class="event-meta-line"><span class="event-time">09:30</span><span class="event-cal-pill">業務</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="layer-card layer-theme-1yr">
+                  <div class="layer-header"><span class="layer-pill">Layer 02</span><span class="layer-title">中間層 (1年前)</span></div>
+                  <div class="events-timeline" style="padding: 4px;">
+                    <div class="event-item" style="--event-cal-color: #3b82f6;">
+                      <div class="event-title-full">旧システム移行定例</div>
+                      <div class="event-meta-line"><span class="event-time">10:00</span><span class="event-cal-pill">業務</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="layer-card layer-theme-2yr">
+                  <div class="layer-header"><span class="layer-pill">Layer 03</span><span class="layer-title">深層 (2年前)</span></div>
+                  <div class="events-timeline" style="padding: 4px;">
+                    <div class="event-item" style="--event-cal-color: #10b981;">
+                      <div class="event-title-full">💡 TimeLayer 構想立案</div>
+                      <div class="event-meta-line"><span class="event-time">14:00</span><span class="event-cal-pill">開発</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Scene 5: Small Promo Tile (440x280) -->
+        <div id="scene-5" class="scene-container">
+          <div class="promo-tile-card">
+            <div class="promo-glow-bg"></div>
+            <div class="promo-content">
+              <div class="promo-badge">CHROME 拡張機能</div>
+              <div class="promo-brand">
+                <div class="promo-strata-bars">
+                  <span class="strata-bar strata-1" style="background:#10b981; box-shadow:0 0 8px rgba(16,185,129,0.6);"></span>
+                  <span class="strata-bar strata-2" style="background:#f59e0b; box-shadow:0 0 8px rgba(245,158,11,0.6);"></span>
+                  <span class="strata-bar strata-3" style="background:#a855f7; box-shadow:0 0 8px rgba(168,85,247,0.6);"></span>
+                </div>
+                <div class="promo-title">TimeLayer</div>
+              </div>
+              <div class="promo-subtitle">カレンダー地層ビュー</div>
+              <div class="promo-lead">
+                <strong>現在・1年前・2年前</strong> の予定を重ねて一覧比較
+              </div>
+              <div class="promo-features-chips">
+                <span class="promo-chip chip-1">Layer 01: 現在</span>
+                <span class="promo-chip chip-2">Layer 02: 1年前</span>
+                <span class="promo-chip chip-3">Layer 03: 2年前</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="studio-toast" class="studio-toast">
+    <span>✅</span>
+    <span id="toast-message">1280 × 800 px で保存しました</span>
+  </div>
+
+  <!-- Manual Capture Guide Modal -->
+  <div id="guide-modal" class="calendar-modal-backdrop hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100000; display: none; align-items: center; justify-content: center;">
+    <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 24px; max-width: 560px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.8); color: #f8fafc;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-size: 16px; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+          <span>💡</span> Chrome DevTools で 1280 × 800 px を手動撮影する手順
+        </h3>
+        <button id="guide-close-btn" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+      <p style="font-size: 13px; line-height: 1.6; color: #cbd5e1; margin-bottom: 16px;">
+        ボタンからの自動保存のほか、Chrome 標準の機能を使って 1280 × 800 ピクセルで直接高画質キャプチャを撮影することも可能です：
+      </p>
+      <ol style="font-size: 13px; line-height: 1.8; color: #e2e8f0; padding-left: 20px; margin-bottom: 20px;">
+        <li>キーボードの <code>F12</code> を押してデベロッパーツールを開きます。</li>
+        <li><code>Ctrl + Shift + M</code>（スマホ/タブレット切り替えアイコン）を押してデバイスツールバーを有効化します。</li>
+        <li>上部の解像度入力欄に <strong>幅 1280</strong>、<strong>高さ 800</strong> と入力します（ズームは 100%）。</li>
+        <li><code>Ctrl + Shift + P</code> を押し、コマンドパレットを開きます。</li>
+        <li><strong>「Capture screenshot」</strong> と入力して Enter を押すと、1280 × 800 ピクセルの画像が直接保存されます。</li>
+      </ol>
+      <div style="text-align: right;">
+        <button id="guide-ok-btn" style="background: #2563eb; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer;">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================================================
+    // Studio Interactive Logic
+    // ==========================================================================
+    const scenes = {
+      1: {
+        width: 1280,
+        height: 800,
+        title: '時間の地層を重ねる。<span>現在・1年前・2年前</span> の予定を瞬時に一覧比較。',
+        sub: '週横組みマトリクスビュー (Matrix View)',
+        filename: 'timelayer-01-matrix-view.png'
+      },
+      2: {
+        width: 1280,
+        height: 800,
+        title: '3列カラム連動。<span>すべての曜日が水平ライン</span> でピタリと揃う。',
+        sub: '3列同期カラムビュー (Columns View)',
+        filename: 'timelayer-02-columns-view.png'
+      },
+      3: {
+        width: 1280,
+        height: 800,
+        title: '作業を止めない。<span>Chrome サイドパネル</span> で過去の予定を常時参照。',
+        sub: 'Chrome サイドパネルビュー (Side Panel)',
+        filename: 'timelayer-03-sidepanel-view.png'
+      },
+      4: {
+        width: 1280,
+        height: 800,
+        title: 'いつものカレンダーに直接統合。<span>右下からワンクリック</span> で展開。',
+        sub: 'Google カレンダー直接埋め込み (Calendar Integration)',
+        filename: 'timelayer-04-gcal-integration.png'
+      },
+      5: {
+        width: 440,
+        height: 280,
+        title: '公式プロモ画像。<span>440 × 280 px</span> の小プロモーション用タイル。',
+        sub: 'Chrome ウェブストア小プロモタイル (Small Promo Tile)',
+        filename: 'timelayer-promo-small-440x280.png'
+      }
+    };
+
+    let currentScene = 1;
+    let isDark = true;
+    let isBannerVisible = true;
+
+    const sceneBtns = document.querySelectorAll('[data-scene]');
+    const bannerText = document.getElementById('banner-text');
+    const bannerSub = document.getElementById('banner-sub');
+    const storeBanner = document.getElementById('store-banner');
+    const toggleBannerBtn = document.getElementById('toggle-banner-btn');
+    const toggleThemeBtn = document.getElementById('toggle-theme-btn');
+    const downloadBtn = document.getElementById('download-png-btn');
+    const captureCanvas = document.getElementById('capture-canvas');
+    const canvasScaler = document.getElementById('canvas-scaler');
+    const canvasSizeTag = document.getElementById('canvas-size-tag');
+    const toast = document.getElementById('studio-toast');
+    const toastMessage = document.getElementById('toast-message');
+
+    // Zoom Buttons
+    const zoomFitBtn = document.getElementById('zoom-fit-btn');
+    const zoom100Btn = document.getElementById('zoom-100-btn');
+    const zoom80Btn = document.getElementById('zoom-80-btn');
+
+    // Guide Modal
+    const showGuideBtn = document.getElementById('show-guide-btn');
+    const guideModal = document.getElementById('guide-modal');
+    const guideCloseBtn = document.getElementById('guide-close-btn');
+    const guideOkBtn = document.getElementById('guide-ok-btn');
+
+    function showToast(msg) {
+      toastMessage.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    // Switch Scene
+    sceneBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sceneId = btn.dataset.scene;
+        currentScene = sceneId;
+
+        sceneBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.scene-container').forEach(c => c.classList.remove('active'));
+        document.getElementById(`scene-${sceneId}`).classList.add('active');
+
+        const conf = scenes[sceneId];
+        bannerText.innerHTML = conf.title;
+        bannerSub.textContent = conf.sub;
+
+        if (conf.width === 440) {
+          captureCanvas.style.width = '440px';
+          captureCanvas.style.height = '280px';
+          captureCanvas.style.minWidth = '440px';
+          captureCanvas.style.minHeight = '280px';
+          captureCanvas.style.maxWidth = '440px';
+          captureCanvas.style.maxHeight = '280px';
+          if (canvasSizeTag) canvasSizeTag.textContent = '📏 厳密固定: 440 × 280 px (小プロモタイル)';
+          downloadBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            440x280 PNG 保存
+          `;
+          storeBanner.classList.add('hidden');
+          toggleBannerBtn.style.display = 'none';
+        } else {
+          captureCanvas.style.width = '1280px';
+          captureCanvas.style.height = '800px';
+          captureCanvas.style.minWidth = '1280px';
+          captureCanvas.style.minHeight = '800px';
+          captureCanvas.style.maxWidth = '1280px';
+          captureCanvas.style.maxHeight = '800px';
+          if (canvasSizeTag) canvasSizeTag.textContent = '📏 厳密固定: 1280 × 800 px';
+          downloadBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            1280x800 PNG 保存
+          `;
+          storeBanner.classList.toggle('hidden', !isBannerVisible);
+          toggleBannerBtn.style.display = '';
+        }
+
+        if (zoomFitBtn.classList.contains('active')) {
+          applyScale(calculateFitScale());
+        }
+      });
+    });
+
+    // Toggle Banner Overlay
+    toggleBannerBtn.addEventListener('click', () => {
+      isBannerVisible = !isBannerVisible;
+      storeBanner.classList.toggle('hidden', !isBannerVisible);
+      toggleBannerBtn.textContent = isBannerVisible ? '🏷️ 帯: ON' : '🏷️ 帯: OFF';
+    });
+
+    // Toggle Theme (Dark / Light)
+    toggleThemeBtn.addEventListener('click', () => {
+      isDark = !isDark;
+      if (isDark) {
+        captureCanvas.removeAttribute('data-theme');
+        toggleThemeBtn.textContent = '🌙 テーマ: ダーク';
+      } else {
+        captureCanvas.setAttribute('data-theme', 'light');
+        toggleThemeBtn.textContent = '☀️ テーマ: ライト';
+      }
+    });
+
+    // Viewport Scaling / Fitting Logic
+    function applyScale(scale) {
+      canvasScaler.style.transform = `scale(${scale})`;
+      const currentHeight = scenes[currentScene].height || 800;
+      const scaledHeight = currentHeight * scale;
+      const heightDiff = currentHeight - scaledHeight;
+      canvasScaler.style.marginBottom = `-${heightDiff}px`;
+    }
+
+    function calculateFitScale() {
+      const currentWidth = scenes[currentScene].width || 1280;
+      const currentHeight = scenes[currentScene].height || 800;
+      const availableWidth = window.innerWidth - 60;
+      const availableHeight = window.innerHeight - 120;
+      const scaleX = availableWidth / currentWidth;
+      const scaleY = availableHeight / currentHeight;
+      const fitScale = Math.min(scaleX, scaleY, 1.0);
+      return Math.max(fitScale, 0.4);
+    }
+
+    function setZoomMode(mode) {
+      [zoomFitBtn, zoom100Btn, zoom80Btn].forEach(b => b.classList.remove('active'));
+      if (mode === 'fit') {
+        zoomFitBtn.classList.add('active');
+        applyScale(calculateFitScale());
+      } else if (mode === '100') {
+        zoom100Btn.classList.add('active');
+        applyScale(1.0);
+      } else if (mode === '80') {
+        zoom80Btn.classList.add('active');
+        applyScale(0.8);
+      }
+    }
+
+    zoomFitBtn.addEventListener('click', () => setZoomMode('fit'));
+    zoom100Btn.addEventListener('click', () => setZoomMode('100'));
+    zoom80Btn.addEventListener('click', () => setZoomMode('80'));
+
+    window.addEventListener('resize', () => {
+      if (zoomFitBtn.classList.contains('active')) {
+        applyScale(calculateFitScale());
+      }
+    });
+
+    // Initial scale on load (Fit to screen)
+    setTimeout(() => {
+      setZoomMode('fit');
+    }, 100);
+
+    // Guide Modal Handlers
+    showGuideBtn.addEventListener('click', () => {
+      guideModal.style.display = 'flex';
+    });
+    guideCloseBtn.addEventListener('click', () => {
+      guideModal.style.display = 'none';
+    });
+    guideOkBtn.addEventListener('click', () => {
+      guideModal.style.display = 'none';
+    });
+
+    // Download PNG (Strict Dimension Guaranteed)
+    downloadBtn.addEventListener('click', async () => {
+      const config = scenes[currentScene];
+      const targetW = config.width || 1280;
+      const targetH = config.height || 800;
+      const originalText = downloadBtn.innerHTML;
+      downloadBtn.innerHTML = `⏳ ${targetW}x${targetH} 生成中...`;
+      downloadBtn.disabled = true;
+
+      try {
+        // Temporarily reset transform for 1:1 render
+        const prevTransform = canvasScaler.style.transform;
+        const prevMargin = canvasScaler.style.marginBottom;
+        canvasScaler.style.transform = 'none';
+        canvasScaler.style.marginBottom = '0px';
+
+        // Render at 1:1 scale
+        const rawCanvas = await html2canvas(captureCanvas, {
+          width: targetW,
+          height: targetH,
+          scale: 1, // Strictly 1.0 to avoid dpi scaling
+          windowWidth: targetW,
+          windowHeight: targetH,
+          x: 0,
+          y: 0,
+          scrollX: 0,
+          scrollY: 0,
+          useCORS: true,
+          backgroundColor: isDark ? '#0a0f1d' : '#f8fafc'
+        });
+
+        // Restore scale
+        canvasScaler.style.transform = prevTransform;
+        canvasScaler.style.marginBottom = prevMargin;
+
+        // Guarantee exact targetW x targetH pixels via dedicated target canvas
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = targetW;
+        finalCanvas.height = targetH;
+        const ctx = finalCanvas.getContext('2d');
+        ctx.drawImage(rawCanvas, 0, 0, targetW, targetH);
+
+        // Export and download
+        const image = finalCanvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = config.filename;
+        link.href = image;
+        link.click();
+
+        showToast(`✅ 【${config.filename}】を ${targetW} × ${targetH} px で保存しました！`);
+      } catch (err) {
+        console.error('Capture failed:', err);
+        alert('自動キャプチャでエラーが発生しました。「💡 手動撮影ガイド」の手順でも撮影いただけます。');
+      } finally {
+        downloadBtn.innerHTML = originalText;
+        downloadBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
