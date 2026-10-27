@@ -8,6 +8,10 @@
 > **「時間を地層のように重ねる」**  
 > 今週と過去（1年前、2年前）の Google カレンダーの予定を地層のように重ねて比較・振り返りができる Google Chrome 拡張機能です。
 
+<p align="center">
+  <img src="screenshot/timelayer-01-matrix-view.png" alt="TimeLayer 大画面マトリクスビュー" width="800">
+</p>
+
 ---
 
 ## 📖 概要 (Overview)
@@ -103,6 +107,7 @@ timelayer-extension/
 ├── content.js / .css          # Google Calendar ページ埋め込み用スクリプト & スタイル
 ├── preview-screenshots.html   # ストア用キャプチャスタジオ (1280x800 & 440x280 PNG生成)
 ├── icons/                     # 拡張機能アイコン (16x16, 48x48, 128x128)
+├── screenshot/                # ストア審査・掲載用スクリーンショット画像群 (1280x800 / 440x280)
 ├── build-package.ps1          # Chrome Web Store 提出用 ZIP パッケージ自動生成スクリプト
 ├── STORE_LISTING.md           # Chrome ウェブストア申請コピペ用下書きシート
 ├── PRIVACY_POLICY.md          # ストア審査用プライバシーポリシー (日/英)

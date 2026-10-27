@@ -84,14 +84,14 @@ GitHub: https://github.com/youichi-nakajima/timelayer-extension
 
 ### ■ グラフィック アセット (Graphic Assets)
 
-| アセット | ファイル / 準備方法 | サイズ |
+| アセット | ファイル / 保存先 | サイズ |
 | :--- | :--- | :--- |
 | **アイコン** (必須) | `icons/icon128.png` | 128 × 128 px |
-| **スクリーンショット 1** (必須) | `preview-screenshots.html` (Scene 1: 大画面マトリクス) | 1280 × 800 px |
-| **スクリーンショット 2** (必須) | `preview-screenshots.html` (Scene 2: 3列同期カラム) | 1280 × 800 px |
-| **スクリーンショット 3** (必須) | `preview-screenshots.html` (Scene 3: サイドパネル) | 1280 × 800 px |
-| **スクリーンショット 4** (必須) | `preview-screenshots.html` (Scene 4: カレンダー連携) | 1280 × 800 px |
-| **小プロモタイル** (任意・推奨) | `preview-screenshots.html` (Scene 5: 小プロモタイル) | 440 × 280 px |
+| **スクリーンショット 1** (必須) | `screenshot/timelayer-01-matrix-view.png` (Scene 1: 大画面マトリクス) | 1280 × 800 px |
+| **スクリーンショット 2** (必須) | `screenshot/timelayer-02-columns-view.png` (Scene 2: 3列同期カラム) | 1280 × 800 px |
+| **スクリーンショット 3** (必須) | `screenshot/timelayer-03-sidepanel-view.png` (Scene 3: サイドパネル) | 1280 × 800 px |
+| **スクリーンショット 4** (必須) | `screenshot/timelayer-04-gcal-integration.png` (Scene 4: カレンダー連携) | 1280 × 800 px |
+| **小プロモタイル** (任意・推奨) | `screenshot/timelayer-promo-small-440x280.png` (Scene 5: 小プロモタイル) | 440 × 280 px |
 
 ---
 
