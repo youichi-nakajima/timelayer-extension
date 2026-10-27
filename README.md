@@ -3,6 +3,7 @@
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 [![Version](https://img.shields.io/badge/version-1.3.0-10b981.svg)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-☕-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/youichinakq)
 
 > **「時間を地層のように重ねる」**  
 > 今週と過去（1年前、2年前）の Google カレンダーの予定を地層のように重ねて比較・振り返りができる Google Chrome 拡張機能です。
@@ -128,6 +129,15 @@ Chrome Web Store 提出用のクリーンな ZIP アーカイブ（不要な開�
 - **外部サーバー不使用 & 完全ローカル動作**: 取得したカレンダー情報は、ユーザーのブラウザと Google 公式 API（`googleapis.com`）の間でのみ通信され、サードパーティのサーバー等には一切送信・保存されません。また、UIはOS標準のシステムフォントのみを使用するため、レンダリング時に外部 CDN への通信やフォントライセンスの依存は一切ありません。
 - **インメモリ・トークン管理 & 1時間自動失効**: OAuth トークンは `chrome.storage.session`（メモリ内）でのみ管理され、ディスクに平文保存されません。また、有効期限は最大1時間で自動的に失効・破棄されるため、長期間のアクセス権が残存するリスクを排除しています。ブラウザ終了時や明示的なサインアウト時にも即座に破棄されます。
 - **最小限の権限設計（Least Privilege）**: カレンダー一覧の読み取り（`calendar.calendarlist.readonly`）とイベントの読み取り（`calendar.events.readonly`）のみを要求します。カレンダー設定の参照や予定の作成・変更・削除などの書き込み権限は一切保持しません。
+
+---
+
+## ☕ 開発の応援 (Support)
+
+TimeLayer は個人開発のオープンソースプロジェクトとしてメンテナンス・改善を行っています。  
+もしこの拡張機能が日々のカレンダー管理や振り返りに役立ちましたら、Buy Me a Coffee からコーヒーを一杯ごちそうしていただけると、継続的な開発や新機能追加の大きな励みになります！
+
+[![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=☕&slug=youichinakq&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/youichinakq)
 
 ---
 

@@ -1311,6 +1311,12 @@ body {
   margin-top: auto;
 }
 
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .footer-status {
   display: flex;
   align-items: center;
@@ -1324,6 +1330,32 @@ body {
   height: 6px;
   background: var(--l1-color);
   border-radius: 50%;
+}
+
+.coffee-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.coffee-link:hover {
+  color: var(--l2-color);
+  background-color: var(--l2-bg);
+}
+
+.coffee-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.coffee-text {
+  font-size: 10.5px;
 }
 
 /* ==========================================================================
