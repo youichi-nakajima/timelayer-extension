@@ -95,6 +95,16 @@ GitHub: https://github.com/youichi-nakajima/timelayer-extension
 
 ---
 
+### ■ 追加フィールド (Additional Fields / 任意)
+
+| 項目 | 入力内容 | 補足 |
+| :--- | :--- | :--- |
+| **公式 URL** | *(空欄のままでOK)* | Search Console で所有権を確認した独自ドメインがある場合のみ入力する欄のため、空欄で問題ありません。 |
+| **ホームページ URL** | `https://github.com/youichi-nakajima/timelayer-extension` | GitHub リポジトリのトップURLを指定します（任意）。 |
+| **サポート URL** | `https://github.com/youichi-nakajima/timelayer-extension/issues` | GitHub の Issue（問い合わせ・要望）URLを指定します（任意）。 |
+
+---
+
 ## 2. プライバシーへの取り組み (Privacy Practices タブ)
 
 ### ■ 単一目的の説明 (Single Purpose Description)
