@@ -42,6 +42,7 @@
 - **全地層横断検索**: 予定名や場所のキーワードで、現在・1年前・2年前のすべての予定を瞬時にインクリメンタル検索・ハイライト表示。
 - **3列カラムの曜日整列＆連動スクロール**: 予定の有無にかかわらず全7曜日の行が3列で水平に揃い、どこをスクロールしても3列が一体となって滑らかに同期スクロール。
 - **複数日・日マタギ予定の完全サポート**: 数日間にまたがる出張や連休・合宿などの長期イベントも、帯状のトラックや各曜日のセルで欠落なくわかりやすく可視化。
+- **大画面を開いた時のスマート自動クローズ**: サイドパネルや Google カレンダー埋め込みドロワーから大画面ダッシュボードを開くと、自動で元のサイドビューが閉じてデスクトップをスッキリ保ちます。
 
 ### 4. 堅牢なパフォーマンス & セキュリティ設計
 - **最小権限（Least Privilege）のスコープ設計**: カレンダー設定等の不要な権限を排除し、予定比較・表示に必要な2つの最小権限（`calendar.calendarlist.readonly` および `calendar.events.readonly`）のみを要求します。予定の作成・改変・削除権限は一切保持しません。
@@ -84,8 +85,8 @@ git clone https://github.com/youichi-nakajima/timelayer-extension.git
    - アプリケーションの種類: **「ウェブ アプリケーション」** を選択します（※ `chrome.identity.launchWebAuthFlow` を使用するため、「Chrome アプリ」ではなく必ず「ウェブ アプリケーション」を選択してください）。
    - 承認済みのリダイレクト URI:  
      `https://<あなたの拡張機能ID>.chromiumapp.org/`  
-     *(※拡張機能初回起動時のログイン画面に表示されるコピーボタンから直接取得できます)*  
-     *(※Chrome ウェブストア公開時は、公開後の本番拡張機能IDの URI もここに追加登録してください)*
+     *(※ `<あなたの拡張機能ID>` は、Chrome の拡張機能管理画面 `chrome://extensions` に表示される32文字の英字IDです)*  
+     *(※ Chrome ウェブストア公開時は、ストアダッシュボードで発行される本番拡張機能IDの URI もここに追加登録してください)*
 4. 作成したクライアント ID を [manifest.json](manifest.json) の `oauth2.client_id` に設定し、拡張機能を再読み込みします。
 
 ---
@@ -94,20 +95,20 @@ git clone https://github.com/youichi-nakajima/timelayer-extension.git
 
 ```
 timelayer-extension/
-├── manifest.json        # 拡張機能マニフェスト (Manifest V3)
-├── background.js        # バックグラウンドサービスワーカー (サイドパネル挙動・コンテキストメニュー)
-├── timelayer-core.js    # 共通コアロジック (認証・APIリクエスト制限・キャッシュ・エラーハンドリング)
-├── sidepanel.html       # Chrome サイドパネル用 HTML
-├── sidepanel.css        # サイドパネル用スタイル
-├── sidepanel.js         # サイドパネル制御ロジック
-├── dashboard.html       # 大画面パノラマダッシュボード用 HTML
-├── dashboard.css        # ダッシュボード用スタイル
-├── dashboard.js         # ダッシュボード制御ロジック (マトリクス / カラム表示)
-├── content.js           # Google Calendar ページ埋め込み用コンテンツスクリプト
-├── content.css          # Google Calendar 内フローティングボタン・ドロワー用スタイル
-├── icons/               # 拡張機能アイコン (16x16, 48x48, 128x128)
-├── build-package.ps1    # Chrome Web Store 提出用 ZIP パッケージ自動生成スクリプト
-└── README.md            # ドキュメント（本ファイル）
+├── manifest.json              # 拡張機能マニフェスト (Manifest V3)
+├── background.js              # バックグラウンドサービスワーカー (サイドパネル挙動・コンテキストメニュー)
+├── timelayer-core.js          # 共通コアロジック (認証・APIリクエスト制限・キャッシュ・エラーハンドリング)
+├── sidepanel.html / .css / .js # Chrome サイドパネル用ファイル群
+├── dashboard.html / .css / .js # 大画面パノラマダッシュボード用ファイル群
+├── content.js / .css          # Google Calendar ページ埋め込み用スクリプト & スタイル
+├── preview-screenshots.html   # ストア用キャプチャスタジオ (1280x800 & 440x280 PNG生成)
+├── icons/                     # 拡張機能アイコン (16x16, 48x48, 128x128)
+├── build-package.ps1          # Chrome Web Store 提出用 ZIP パッケージ自動生成スクリプト
+├── STORE_LISTING.md           # Chrome ウェブストア申請コピペ用下書きシート
+├── PRIVACY_POLICY.md          # ストア審査用プライバシーポリシー (日/英)
+├── README.store.md            # ストア・エンドユーザー向け README
+├── LICENSE                    # MIT ライセンス
+└── README.md                  # 開発者・総合ドキュメント（本ファイル）
 ```
 
 ---
