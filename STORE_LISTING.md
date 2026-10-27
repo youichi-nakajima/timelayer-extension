@@ -156,4 +156,11 @@ To access Google Calendar events and display a multi-layered comparative view co
 https://github.com/youichi-nakajima/timelayer-extension/blob/main/PRIVACY_POLICY.md
 ```
 
+---
+
+### ■ リモートコードの使用 (Remote Code)
+- **質問**: 「リモートコードを使用していますか？」
+- **回答**: **「いいえ」** を選択
+  *(※すべてのスクリプト・スタイルは ZIP パッケージ内に完全に同梱されており、外部サーバーから動的にプログラムコードを読み込んで実行することは一切していません)*
+
 
