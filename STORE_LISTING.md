@@ -153,7 +153,7 @@ To access Google Calendar events and display a multi-layered comparative view co
 ### ■ プライバシーポリシーの URL (Privacy Policy URL)
 
 ```text
-https://github.com/youichi-nakajima/timelayer-extension/blob/main/PRIVACY_POLICY.md
+https://youichi-nakajima.github.io/timelayer-extension/privacy.html
 ```
 
 ---

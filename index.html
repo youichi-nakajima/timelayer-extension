@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-site-verification" content="google0818595279afcbb2">
+  <title>TimeLayer - Calendar Strata Viewer for Google Calendar</title>
+  <link rel="icon" href="icons/icon48.png" type="image/png">
+  <style>
+    :root {
+      --bg-primary: #090d16;
+      --bg-card: #131c2e;
+      --bg-card-alt: #1a263d;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --border-color: #23314a;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 20px;
+    }
+    .nav-brand img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent-emerald);
+    }
+    .hero {
+      text-align: center;
+      padding: 80px 20px 60px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      font-size: 44px;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+    }
+    .hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 36px;
+    }
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent-emerald);
+      color: #090d16;
+    }
+    .btn-primary:hover {
+      background: #059669;
+    }
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: #fff;
+    }
+    .btn-secondary:hover {
+      background: var(--bg-card-alt);
+    }
+    .preview-section {
+      max-width: 1100px;
+      margin: 0 auto 80px;
+      padding: 0 20px;
+    }
+    .screenshot-frame {
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7);
+    }
+    .screenshot-frame img {
+      width: 100%;
+      display: block;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto 80px;
+      padding: 0 20px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 32px;
+    }
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+    .feature-card h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .security-banner {
+      max-width: 1100px;
+      margin: 0 auto 80px;
+      padding: 40px;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(139, 92, 246, 0.08));
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .security-banner h2 {
+      font-size: 22px;
+      color: #fff;
+    }
+    .security-banner p {
+      color: #cbd5e1;
+      font-size: 15px;
+    }
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .footer-links a:hover {
+      color: var(--accent-emerald);
+      text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .navbar { padding: 16px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <a href="./" class="nav-brand">
+      <img src="icons/icon48.png" alt="TimeLayer Icon">
+      <span>TimeLayer</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#security">Privacy & Security</a>
+      <a href="privacy.html" style="color: var(--accent-emerald); font-weight: 600;">Privacy Policy</a>
+      <a href="https://github.com/youichi-nakajima/timelayer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-badge">Google Chrome Extension (Manifest V3)</div>
+    <h1>Layer Your Time Like Strata</h1>
+    <p>
+      Overlay and compare your Google Calendar schedules seamlessly across <strong>Today</strong>, <strong>1 Year Ago</strong>, and <strong>2 Years Ago</strong> on a single unified multi-layered view.
+    </p>
+    <div class="hero-actions">
+      <a href="privacy.html" class="btn btn-primary">Read Privacy Policy</a>
+      <a href="https://github.com/youichi-nakajima/timelayer-extension" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">View Source on GitHub</a>
+    </div>
+  </header>
+
+  <!-- Screenshot Preview -->
+  <section class="preview-section">
+    <div class="screenshot-frame">
+      <img src="screenshot/timelayer-01-matrix-view.png" alt="TimeLayer Matrix View Dashboard">
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section id="features" class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📌</div>
+      <h3>Chrome Side Panel</h3>
+      <p>Instant reference side panel that keeps your browsing workflow uninterrupted while checking historical events and notes.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🪁</div>
+      <h3>Panoramic Dashboard</h3>
+      <p>Full-screen multi-layer workspace with Matrix View (horizontal week alignment) and 3-Column Columns View with synchronized scrolling.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🚀</div>
+      <h3>Google Calendar Embedded</h3>
+      <p>Quick floating trigger button directly on calendar.google.com that slides open a drawer view without switching tabs.</p>
+    </div>
+  </section>
+
+  <!-- Privacy & Security Notice -->
+  <section id="security" class="security-banner">
+    <h2>🔒 Privacy by Design & Zero Server Architecture</h2>
+    <p>
+      TimeLayer communicates directly between your browser and official Google APIs (<code>googleapis.com</code>). 
+      Your calendar entries and tokens are <strong>never sent to or stored on any external server</strong>, including the developer's server.
+    </p>
+    <p>
+      We strictly request read-only permissions (<code>calendar.calendarlist.readonly</code> and <code>calendar.events.readonly</code>) to compare events. No creation, modification, or deletion permissions are requested.
+    </p>
+    <div style="margin-top: 12px;">
+      <a href="privacy.html" style="color: var(--accent-emerald); font-weight: 600; text-decoration: underline;">
+        View our Full Privacy Policy →
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="./">Home</a>
+      <a href="privacy.html"><strong>Privacy Policy (プライバシーポリシー)</strong></a>
+      <a href="https://github.com/youichi-nakajima/timelayer-extension" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+      <a href="https://github.com/youichi-nakajima/timelayer-extension/issues" target="_blank" rel="noopener noreferrer">Support & Issues</a>
+    </div>
+    <p>© 2026 Youichi Nakajima. Released under the MIT License.</p>
+  </footer>
+
+</body>
+</html>
