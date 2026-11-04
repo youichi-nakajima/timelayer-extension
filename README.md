@@ -132,7 +132,7 @@ Chrome Web Store 提出用のクリーンな ZIP アーカイブ（不要な開�
 
 ## 🔒 プライバシー & セキュリティ (Privacy)
 
-詳細な規程は [公式プライバシーポリシー (privacy.html)](https://youichi-nakajima.github.io/timelayer-extension/privacy.html) または [PRIVACY_POLICY.md](PRIVACY_POLICY.md) をご確認ください。
+詳細な規程は [公式プライバシーポリシー (privacy.html)](https://timelayer.aufheben.studio/privacy.html) または [PRIVACY_POLICY.md](PRIVACY_POLICY.md) をご確認ください。
 
 - **外部サーバー不使用 & 完全ローカル動作**: 取得したカレンダー情報は、ユーザーのブラウザと Google 公式 API（`googleapis.com`）の間でのみ通信され、サードパーティのサーバー等には一切送信・保存されません。また、UIはOS標準のシステムフォントのみを使用するため、レンダリング時に外部 CDN への通信やフォントライセンスの依存は一切ありません。
 - **インメモリ・トークン管理 & 1時間自動失効**: OAuth トークンは `chrome.storage.session`（メモリ内）でのみ管理され、ディスクに平文保存されません。また、有効期限は最大1時間で自動的に失効・破棄されるため、長期間のアクセス権が残存するリスクを排除しています。ブラウザ終了時や明示的なサインアウト時にも即座に破棄されます。
