@@ -122,5 +122,13 @@
     }
   });
 
+  // 埋め込みiframeからのドロワー閉鎖リクエストを受信
+  const extensionOrigin = new URL(chrome.runtime.getURL('')).origin;
+  window.addEventListener('message', (e) => {
+    if (e.origin === extensionOrigin && e.source === iframe.contentWindow && e.data?.type === 'TIMELAYER_CLOSE_DRAWER') {
+      closeDrawer();
+    }
+  });
+
   console.log('[TimeLayer] Content script injected into Google Calendar successfully.');
 })();

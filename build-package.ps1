@@ -72,6 +72,13 @@ try {
         }
     }
 
+    $localesSource = Join-Path $projectRoot "_locales"
+    if (Test-Path $localesSource) {
+        $localesDest = Join-Path $stageDir "_locales"
+        Copy-Item -Path $localesSource -Destination $localesDest -Recurse -Force
+        Write-Host "  + _locales" -ForegroundColor Gray
+    }
+
     Get-ChildItem -Path $stageDir -Recurse -Force -Include ".DS_Store", "Thumbs.db", "*.tmp" | Remove-Item -Force
 
     Write-Host "`n[2/3] Compressing ZIP archive..." -ForegroundColor Yellow

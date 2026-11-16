@@ -12,7 +12,7 @@ TimeLayer（以下「本拡張機能」）は、ユーザーのプライバシ�
 ### 1. 取得およびアクセスする情報
 本拡張機能は、ユーザーが Google カレンダー連携を承認した場合に限り、以下の情報にアクセスします：
 - **Google カレンダー一覧情報**: カレンダーID、カレンダー名、カラー（表示するカレンダーの選択のため）
-- **Google カレンダー予定情報**: 予定タイトル、開始日時、終了日時、場所、説明（現在、1年前、2年前の予定を画面上で比較・表示するため）
+- **Google カレンダー予定情報**: 予定タイトル、開始日時、終了日時、場所（現在、1年前、2年前の予定を画面上で比較・表示するため）
 - **ユーザー設定情報**: 選択したカレンダー、週の開始曜日（日/月）、テーマ設定（ダーク/ライト）
 
 ### 2. 利用目的
@@ -49,7 +49,7 @@ TimeLayer ("the Extension") respects your privacy and is committed to protecting
 ### 1. Information Accessed
 The Extension accesses the following information only when explicitly authorized by the user via Google OAuth:
 - **Google Calendar List**: Calendar ID, summary/title, and color.
-- **Calendar Event Data**: Event title/summary, start/end time, location, and description (for displaying and comparing events across present, 1-year-ago, and 2-years-ago).
+- **Calendar Event Data**: Event title/summary, start/end time, and location (for displaying and comparing events across present, 1-year-ago, and 2-years-ago).
 - **User Preferences**: Selected calendar IDs, week start day (Sunday/Monday), and UI theme settings.
 
 ### 2. Purpose of Use

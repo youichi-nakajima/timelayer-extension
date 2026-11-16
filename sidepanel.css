@@ -129,7 +129,7 @@
   background: rgba(0, 0, 0, 0.05);
 }
 
-[data-theme="light"] .calendar-drawer-header {
+[data-theme="light"] .calendar-panel-header {
   background: var(--bg-surface);
 }
 
@@ -1210,6 +1210,22 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+.event-item.is-holiday-item {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.12) 0%, var(--bg-surface) 100%);
+  border-left-color: #ef4444;
+}
+
+.event-item.search-dimmed-item {
+  opacity: 0.2;
+  filter: grayscale(85%);
+}
+
+.event-item.search-matched-item {
+  border-color: rgba(52, 211, 153, 0.55);
+  background: rgba(16, 185, 129, 0.09);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
 /* 1行目を丸ごと使って大きく表示する予定タイトル */
 .event-title-full {
   font-size: 12px;
@@ -1373,5 +1389,9 @@ body.is-embedded .app-container {
 body.is-embedded .app-header {
   border-color: rgba(16, 185, 129, 0.25);
   box-shadow: 0 0 12px rgba(16, 185, 129, 0.08);
+}
+
+body.is-embedded #open-fullpage-btn {
+  display: none;
 }
 

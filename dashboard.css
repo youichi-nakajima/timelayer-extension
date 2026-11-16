@@ -1347,15 +1347,20 @@ body {
   border-left-color: #ef4444;
 }
 
-.event-item.search-dimmed-item {
+.event-item.search-dimmed-item,
+.multi-day-banner.search-dimmed-item {
   opacity: 0.2;
   filter: grayscale(85%);
 }
 
+.event-item.search-matched-item,
+.multi-day-banner.search-matched-item {
+  border-color: rgba(52, 211, 153, 0.85);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.28);
+}
+
 .event-item.search-matched-item {
-  border-color: rgba(52, 211, 153, 0.55);
   background: rgba(16, 185, 129, 0.09);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
 }
 
 /* 1行目を丸ごと使って大きく表示する予定タイトル */
@@ -1634,7 +1639,7 @@ body {
 }
 
 .copy-btn:hover {
-  background: var(--bg-surface-hover);
+  background: var(--bg-surface-elevated);
   border-color: var(--l1-color);
   color: #ffffff;
 }

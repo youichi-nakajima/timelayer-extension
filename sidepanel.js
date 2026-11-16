@@ -18,6 +18,7 @@
   // =========================================================================
   let currentOffsetWeeks = 0; // 0 = 今週, -1 = 先週, +1 = 来週
   let currentAuthToken = null;
+  let isSigningIn = false;
   let loadController = null; // 実行中の loadAllLayers を中断するための AbortController
   let isFetchingCalendars = false;
 
@@ -91,68 +92,6 @@
   };
 
   // =========================================================================
-  // Date Helpers
-  // =========================================================================
-  const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
-
-  /**
-   * 指定したオフセット週の開始日 00:00:00 〜 終了日 23:59:59.999 の範囲を計算
-   * currentWeekStart が 'monday' の場合は月曜〜日曜、'sunday' の場合は日曜〜土曜
-   */
-  function getWeekRange(offsetWeeks = 0, yearOffset = 0) {
-    const now = new Date();
-    // 1. 今日の日付からオフセット週分ずらした日を計算
-    const targetDate = new Date(now.getFullYear() - yearOffset, now.getMonth(), now.getDate() + (offsetWeeks * 7));
-    
-    // 2. 週の開始曜日（0:日曜 または 1:月曜）に合わせて差分日数を計算
-    const startDayOfWeek = currentWeekStart === 'monday' ? 1 : 0;
-    let diff = targetDate.getDay() - startDayOfWeek;
-    if (diff < 0) {
-      diff += 7;
-    }
-    const weekStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() - diff, 0, 0, 0, 0);
-    
-    // 3. 週の終了日（開始日の6日後 23:59:59.999）
-    const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6, 23, 59, 59, 999);
-
-    return {
-      start: weekStart,
-      end: weekEnd,
-      year: weekStart.getFullYear()
-    };
-  }
-
-  function formatDateShort(date) {
-    const m = date.getMonth() + 1;
-    const d = date.getDate();
-    const day = DAY_NAMES[date.getDay()];
-    return `${m}/${d}(${day})`;
-  }
-
-  function formatRangeText(start, end, includeYear = true) {
-    const y = start.getFullYear();
-    const startStr = `${start.getMonth() + 1}/${start.getDate()}(${DAY_NAMES[start.getDay()]})`;
-    const endStr = `${end.getMonth() + 1}/${end.getDate()}(${DAY_NAMES[end.getDay()]})`;
-    return includeYear ? `${y}年 ${startStr} 〜 ${endStr}` : `${startStr} 〜 ${endStr}`;
-  }
-
-  function formatTime(dateObj) {
-    const h = String(dateObj.getHours()).padStart(2, '0');
-    const m = String(dateObj.getMinutes()).padStart(2, '0');
-    return `${h}:${m}`;
-  }
-
-  function formatDateOnly(d) {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
-  function getDayDifference(dateStr1, dateStr2) {
-    const d1 = new Date(dateStr1 + 'T00:00:00Z');
-    const d2 = new Date(dateStr2 + 'T00:00:00Z');
-    return Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
-  }
-
-  // =========================================================================
   // UI Display & Alerts
   // =========================================================================
   function showAlert(msg) {
@@ -191,8 +130,8 @@
 
   function updateWeekNavUI() {
     updateWeekStartBtnUI();
-    const currentWeekRange = getWeekRange(currentOffsetWeeks, 0);
-    weekRangeText.textContent = formatRangeText(currentWeekRange.start, currentWeekRange.end, true);
+    const currentWeekRange = TimeLayerCore.getWeekRange(currentOffsetWeeks, 0, currentWeekStart);
+    weekRangeText.textContent = TimeLayerCore.formatRangeText(currentWeekRange.start, currentWeekRange.end, true);
 
     if (currentOffsetWeeks === 0) {
       weekRelativeLabel.textContent = '今週';
@@ -213,106 +152,6 @@
   }
 
   // =========================================================================
-  // Storage Handlers (Tokens & Calendar Selections)
-  // =========================================================================
-  // トークンは timelayer-core.js で chrome.storage.session（メモリのみ）に有効期限付きで保存
-  function getStoredToken() {
-    return TimeLayerCore.getStoredToken();
-  }
-
-  function saveStoredToken(token, expiresInSec) {
-    return TimeLayerCore.saveStoredToken(token, expiresInSec);
-  }
-
-  function clearStoredToken() {
-    return TimeLayerCore.clearStoredToken();
-  }
-
-  function getStoredSelectedCalendarIds() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(['timelayer_selected_calendar_ids'], (res) => {
-        resolve(res.timelayer_selected_calendar_ids || null);
-      });
-    });
-  }
-
-  function saveStoredSelectedCalendarIds(idsArray) {
-    return new Promise((resolve) => {
-      chrome.storage.local.set({ timelayer_selected_calendar_ids: idsArray }, resolve);
-    });
-  }
-
-  // =========================================================================
-  // Google Calendar API: CalendarList
-  // =========================================================================
-  function isHolidayCalendar(cal) {
-    const id = (cal.id || '').toLowerCase();
-    const summary = (cal.summary || '').toLowerCase();
-    return id.includes('holiday@group.v.calendar.google.com') ||
-           summary.includes('祝日') ||
-           summary.includes('holiday') ||
-           summary.includes('日本の祝日');
-  }
-
-  async function fetchCalendarList(token) {
-    const allItems = [];
-    let pageToken = null;
-    let pageCount = 0;
-    const MAX_PAGES = 5;
-
-    do {
-      const endpoint = new URL('https://www.googleapis.com/calendar/v3/users/me/calendarList');
-      endpoint.searchParams.set('maxResults', '100');
-      endpoint.searchParams.set('fields', 'items(id,summary,description,backgroundColor,foregroundColor,primary,selected),nextPageToken');
-      if (pageToken) endpoint.searchParams.set('pageToken', pageToken);
-
-      const response = await TimeLayerCore.apiFetch(endpoint.toString(), token);
-
-      if (response.status === 401) {
-        await clearStoredToken();
-        throw new Error('AUTH_EXPIRED');
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const message = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(message);
-      }
-
-      const data = await response.json();
-      if (data.items) allItems.push(...data.items);
-      pageToken = data.nextPageToken || null;
-      pageCount++;
-    } while (pageToken && pageCount < MAX_PAGES);
-
-    // カレンダー情報の正規化
-    const parsed = allItems.map(item => {
-      const isHoliday = isHolidayCalendar(item);
-      return {
-        id: item.id,
-        summary: item.summary || '（名称未設定）',
-        description: item.description || '',
-        backgroundColor: item.backgroundColor || '#6366f1',
-        foregroundColor: item.foregroundColor || '#ffffff',
-        primary: Boolean(item.primary),
-        isHoliday: isHoliday,
-        selectedInGoogle: Boolean(item.selected)
-      };
-    });
-
-    // ソート順: プライマリを先頭に、次に祝日、その後に通常カレンダーを五十音順
-    parsed.sort((a, b) => {
-      if (a.primary) return -1;
-      if (b.primary) return 1;
-      if (a.isHoliday) return -1;
-      if (b.isHoliday) return 1;
-      return a.summary.localeCompare(b.summary, 'ja');
-    });
-
-    return parsed;
-  }
-
-  // =========================================================================
   // Calendar Management Logic & UI
   // =========================================================================
   async function loadCalendars() {
@@ -322,10 +161,10 @@
     calendarListLoading.classList.remove('hidden');
 
     try {
-      availableCalendars = await fetchCalendarList(currentAuthToken);
+      availableCalendars = await TimeLayerCore.fetchCalendarList(currentAuthToken);
 
       // 保存済みの選択状態を読み込む
-      const savedIds = await getStoredSelectedCalendarIds();
+      const savedIds = await TimeLayerCore.getStoredSelectedCalendarIds();
 
       if (savedIds && Array.isArray(savedIds) && savedIds.length > 0) {
         // 利用可能なカレンダーにフィルタリング
@@ -346,7 +185,7 @@
           availableCalendars.forEach(c => selectedCalendarIds.add(c.id));
         }
 
-        await saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
+        await TimeLayerCore.saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
       }
 
       renderCalendarList();
@@ -390,11 +229,11 @@
 
       itemEl.innerHTML = `
         <div class="cal-item-left">
-          <span class="cal-color-dot" style="background-color: ${escapeHtml(cal.backgroundColor)};"></span>
-          <span class="cal-item-name" title="${escapeHtml(cal.summary)}">${escapeHtml(cal.summary)}</span>
+          <span class="cal-color-dot" style="background-color: ${TimeLayerCore.escapeHtml(cal.backgroundColor)};"></span>
+          <span class="cal-item-name" title="${TimeLayerCore.escapeHtml(cal.summary)}">${TimeLayerCore.escapeHtml(cal.summary)}</span>
           ${tagsHtml}
         </div>
-        <input type="checkbox" class="cal-checkbox" data-id="${escapeHtml(cal.id)}" ${isChecked ? 'checked' : ''}>
+        <input type="checkbox" class="cal-checkbox" data-id="${TimeLayerCore.escapeHtml(cal.id)}" ${isChecked ? 'checked' : ''}>
       `;
 
       const checkbox = itemEl.querySelector('.cal-checkbox');
@@ -408,7 +247,7 @@
           itemEl.classList.remove('is-selected');
         }
 
-        await saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
+        await TimeLayerCore.saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
         updateCalendarBadge();
         scheduleLoadAllLayers();
       });
@@ -431,120 +270,6 @@
     } else {
       calendarBadgeCount.classList.add('hidden');
     }
-  }
-
-  // =========================================================================
-  // Google Calendar API: Multi-Calendar Parallel Events Fetching
-  // =========================================================================
-  async function fetchEventsForSingleCalendar(token, cal, timeMin, timeMax, signal) {
-    let items;
-    try {
-      // 同じカレンダー・同じ期間はキャッシュを再利用（過去期間30分 / 現在含む2分）
-      items = await TimeLayerCore.getEventsCached(cal.id, timeMin, timeMax, async () => {
-        const allEvents = [];
-        let pageToken = null;
-        let pageCount = 0;
-        const MAX_PAGES = 4;
-
-        do {
-          const encodedId = encodeURIComponent(cal.id);
-          const endpoint = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events`);
-          endpoint.searchParams.set('timeMin', timeMin.toISOString());
-          endpoint.searchParams.set('timeMax', timeMax.toISOString());
-          endpoint.searchParams.set('singleEvents', 'true');
-          endpoint.searchParams.set('orderBy', 'startTime');
-          endpoint.searchParams.set('maxResults', '250');
-          endpoint.searchParams.set('fields', 'items(id,summary,location,start,end,htmlLink),nextPageToken');
-          if (pageToken) endpoint.searchParams.set('pageToken', pageToken);
-
-          const response = await TimeLayerCore.apiFetch(endpoint.toString(), token, { signal });
-
-          if (response.status === 401) {
-            await clearStoredToken();
-            throw new Error('AUTH_EXPIRED');
-          }
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            const fetchErr = new Error(errorData.error?.message || `HTTP ${response.status}`);
-            fetchErr.name = 'CalendarFetchError';
-            throw fetchErr;
-          }
-
-          const data = await response.json();
-          if (data.items) allEvents.push(...data.items);
-          pageToken = data.nextPageToken || null;
-          pageCount++;
-        } while (pageToken && pageCount < MAX_PAGES);
-
-        return allEvents;
-      }, signal);
-    } catch (err) {
-      // 特定カレンダーのエラー（権限なし等）はスキップ
-      if (err.name === 'CalendarFetchError') {
-        console.warn(`[TimeLayer] Warning: Failed to fetch events for ${cal.summary}:`, err.message);
-        return [];
-      }
-      throw err;
-    }
-
-    // イベントに所属カレンダーのメタデータを付与
-    return items.map(item => ({
-      ...item,
-      _calendarId: cal.id,
-      _calendarSummary: cal.summary,
-      _calendarColor: cal.backgroundColor || '#6366f1',
-      _isHoliday: cal.isHoliday,
-      _isPrimary: cal.primary
-    }));
-  }
-
-  async function fetchAllSelectedCalendarEvents(token, timeMin, timeMax, signal) {
-    if (selectedCalendarIds.size === 0) {
-      return [];
-    }
-
-    const targetCalendars = availableCalendars.filter(c => selectedCalendarIds.has(c.id));
-    if (targetCalendars.length === 0) {
-      return [];
-    }
-
-    // 全ての対象カレンダーを並列フェッチ (Promise.allSettled)
-    // ※同時接続数は TimeLayerCore 側で制限される
-    const fetchPromises = targetCalendars.map(cal => 
-      fetchEventsForSingleCalendar(token, cal, timeMin, timeMax, signal)
-    );
-
-    const results = await Promise.allSettled(fetchPromises);
-
-    // 認証切れ・中断は握りつぶさずに呼び出し元へ伝える
-    const fatal = results.find(r => r.status === 'rejected' &&
-      (r.reason?.message === 'AUTH_EXPIRED' || TimeLayerCore.isAbortError(r.reason)));
-    if (fatal) {
-      throw fatal.reason;
-    }
-
-    let allEvents = [];
-
-    for (const res of results) {
-      if (res.status === 'fulfilled') {
-        allEvents = allEvents.concat(res.value);
-      }
-    }
-
-    // イベントを開始時刻順に整列（終日イベントを先頭に）
-    allEvents.sort((a, b) => {
-      const aStart = a.start?.dateTime ? new Date(a.start.dateTime).getTime() : (a.start?.date ? new Date(a.start.date).getTime() : 0);
-      const bStart = b.start?.dateTime ? new Date(b.start.dateTime).getTime() : (b.start?.date ? new Date(b.start.date).getTime() : 0);
-      
-      if (aStart !== bStart) return aStart - bStart;
-      // 終日イベントを先に
-      if (a.start?.date && !b.start?.date) return -1;
-      if (!a.start?.date && b.start?.date) return 1;
-      return (a.summary || '').localeCompare(b.summary || '', 'ja');
-    });
-
-    return allEvents;
   }
 
   // =========================================================================
@@ -580,20 +305,20 @@
       if (signal.aborted) return;
 
       // 3つの期間の範囲を計算
-      const rangePresent = getWeekRange(currentOffsetWeeks, 0);
-      const range1yr = getWeekRange(currentOffsetWeeks, 1);
-      const range2yr = getWeekRange(currentOffsetWeeks, 2);
+      const rangePresent = TimeLayerCore.getWeekRange(currentOffsetWeeks, 0, currentWeekStart);
+      const range1yr = TimeLayerCore.getWeekRange(currentOffsetWeeks, 1, currentWeekStart);
+      const range2yr = TimeLayerCore.getWeekRange(currentOffsetWeeks, 2, currentWeekStart);
 
       // 各レイヤーのヘッダー日付を更新
-      layers.present.date.textContent = formatRangeText(rangePresent.start, rangePresent.end, true);
-      layers['1yr'].date.textContent = formatRangeText(range1yr.start, range1yr.end, true);
-      layers['2yr'].date.textContent = formatRangeText(range2yr.start, range2yr.end, true);
+      layers.present.date.textContent = TimeLayerCore.formatRangeText(rangePresent.start, rangePresent.end, true);
+      layers['1yr'].date.textContent = TimeLayerCore.formatRangeText(range1yr.start, range1yr.end, true);
+      layers['2yr'].date.textContent = TimeLayerCore.formatRangeText(range2yr.start, range2yr.end, true);
 
       // 3つの地層を並列取得
       const [eventsPresent, events1yr, events2yr] = await Promise.all([
-        fetchAllSelectedCalendarEvents(currentAuthToken, rangePresent.start, rangePresent.end, signal),
-        fetchAllSelectedCalendarEvents(currentAuthToken, range1yr.start, range1yr.end, signal),
-        fetchAllSelectedCalendarEvents(currentAuthToken, range2yr.start, range2yr.end, signal)
+        TimeLayerCore.fetchAllSelectedCalendarEvents(currentAuthToken, availableCalendars, selectedCalendarIds, rangePresent.start, rangePresent.end, signal),
+        TimeLayerCore.fetchAllSelectedCalendarEvents(currentAuthToken, availableCalendars, selectedCalendarIds, range1yr.start, range1yr.end, signal),
+        TimeLayerCore.fetchAllSelectedCalendarEvents(currentAuthToken, availableCalendars, selectedCalendarIds, range2yr.start, range2yr.end, signal)
       ]);
 
       // 取得中に別の週へ切り替えられていたら描画しない
@@ -616,7 +341,7 @@
 
       // 最終更新時刻
       const now = new Date();
-      lastUpdatedEl.textContent = `同期: ${formatTime(now)} (${selectedCalendarIds.size}カレンダー)`;
+      lastUpdatedEl.textContent = `同期: ${TimeLayerCore.formatTime(now)} (${selectedCalendarIds.size}カレンダー)`;
     } catch (err) {
       if (TimeLayerCore.isAbortError(err) || signal.aborted) return;
       console.error('[TimeLayer] Error fetching calendar events:', err);
@@ -658,7 +383,7 @@
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(weekStartDate.getFullYear(), weekStartDate.getMonth(), weekStartDate.getDate() + i);
-      const key = formatDateOnly(d);
+      const key = TimeLayerCore.formatDateOnly(d);
       dayGroups.set(key, { date: d, items: [], holidays: [] });
     }
 
@@ -679,11 +404,11 @@
       } else if (evt.start?.dateTime) {
         // 時間指定予定（日マタギ・複数日対応）
         const s = new Date(evt.start.dateTime);
-        const startStr = formatDateOnly(s);
+        const startStr = TimeLayerCore.formatDateOnly(s);
         const e = evt.end?.dateTime ? new Date(evt.end.dateTime) : s;
         const isMidnightEnd = e.getHours() === 0 && e.getMinutes() === 0 && e.getSeconds() === 0;
         const effectiveEndDate = isMidnightEnd ? new Date(e.getTime() - 1000) : e;
-        const endStr = formatDateOnly(effectiveEndDate);
+        const endStr = TimeLayerCore.formatDateOnly(effectiveEndDate);
 
         dayGroups.forEach((group, key) => {
           if (key >= startStr && key <= endStr) {
@@ -696,8 +421,7 @@
       }
     });
 
-    const today = new Date();
-    const todayKey = formatDateOnly(today);
+    const todayKey = TimeLayerCore.formatDateOnly(new Date());
 
     // 各日の要素を生成
     dayGroups.forEach((group, key) => {
@@ -727,9 +451,9 @@
 
       dayHeader.innerHTML = `
         <div class="day-header-left">
-          <span class="day-title-text">${formatDateShort(group.date)}</span>
+          <span class="day-title-text">${TimeLayerCore.formatDateShort(group.date)}</span>
           ${isToday ? '<span class="today-indicator">TODAY</span>' : ''}
-          ${isHoliday ? `<span class="day-holiday-badge">🎌 ${escapeHtml(holidayName)}</span>` : ''}
+          ${isHoliday ? `<span class="day-holiday-badge">🎌 ${TimeLayerCore.escapeHtml(holidayName)}</span>` : ''}
         </div>
         <span style="font-size: 10px; color: var(--text-tertiary);">${group.items.length}件</span>
       `;
@@ -762,7 +486,7 @@
     if (item.start?.date) {
       const startStr = item.start.date;
       const endStr = item.end?.date || startStr;
-      const totalDays = Math.max(1, getDayDifference(startStr, endStr));
+      const totalDays = Math.max(1, TimeLayerCore.getDayDifference(startStr, endStr));
       if (totalDays > 1) {
         timeHtml = `<span class="all-day-tag">終日 (${totalDays}日間)</span>`;
       } else {
@@ -772,32 +496,32 @@
       const s = new Date(item.start.dateTime);
       const e = item.end?.dateTime ? new Date(item.end.dateTime) : null;
       if (e) {
-        const sStr = formatDateOnly(s);
+        const sStr = TimeLayerCore.formatDateOnly(s);
         const isMidnight = e.getHours() === 0 && e.getMinutes() === 0 && e.getSeconds() === 0;
-        const eStr = formatDateOnly(isMidnight ? new Date(e.getTime() - 1000) : e);
+        const eStr = TimeLayerCore.formatDateOnly(isMidnight ? new Date(e.getTime() - 1000) : e);
         if (sStr !== eStr && currentDateKey) {
           if (currentDateKey === sStr) {
-            timeHtml = `<span class="event-time">${formatTime(s)}〜</span>`;
+            timeHtml = `<span class="event-time">${TimeLayerCore.formatTime(s)}〜</span>`;
           } else if (currentDateKey === eStr) {
-            timeHtml = `<span class="event-time">〜${formatTime(e)}</span>`;
+            timeHtml = `<span class="event-time">〜${TimeLayerCore.formatTime(e)}</span>`;
           } else {
             timeHtml = '<span class="event-time">終日（継続）</span>';
           }
         } else {
-          timeHtml = `<span class="event-time">${formatTime(s)} - ${formatTime(e)}</span>`;
+          timeHtml = `<span class="event-time">${TimeLayerCore.formatTime(s)} - ${TimeLayerCore.formatTime(e)}</span>`;
         }
       } else {
-        timeHtml = `<span class="event-time">${formatTime(s)}</span>`;
+        timeHtml = `<span class="event-time">${TimeLayerCore.formatTime(s)}</span>`;
       }
     }
 
     const summary = item.summary || '(タイトルなし)';
-    const location = item.location ? `<div class="event-location">📍 ${escapeHtml(item.location)}</div>` : '';
-    const calPill = item._calendarSummary ? `<span class="event-cal-pill" title="${escapeHtml(item._calendarSummary)}">${escapeHtml(item._calendarSummary)}</span>` : '';
+    const location = item.location ? `<div class="event-location">📍 ${TimeLayerCore.escapeHtml(item.location)}</div>` : '';
+    const calPill = item._calendarSummary ? `<span class="event-cal-pill" title="${TimeLayerCore.escapeHtml(item._calendarSummary)}">${TimeLayerCore.escapeHtml(item._calendarSummary)}</span>` : '';
 
     itemEl.innerHTML = `
-      <div class="event-title-full" title="${escapeHtml(summary)}">
-        ${escapeHtml(summary)}
+      <div class="event-title-full" title="${TimeLayerCore.escapeHtml(summary)}">
+        ${TimeLayerCore.escapeHtml(summary)}
       </div>
       <div class="event-meta-line">
         <div class="event-meta-left">
@@ -857,98 +581,16 @@
     searchMatchCount.classList.remove('hidden');
   }
 
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>'"]/g, tag => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      "'": '&#39;',
-      '"': '&quot;'
-    }[tag] || tag));
-  }
-
   // =========================================================================
-  // Auth Handlers (launchWebAuthFlow + storage caching)
+  // Auth Handlers
   // =========================================================================
   const REDIRECT_URL = chrome.identity.getRedirectURL();
 
-  async function getAuthToken(interactive = false) {
-    // 1. まずローカルストレージの保存済みトークンを確認
-    const stored = await getStoredToken();
-    if (stored) {
-      return stored;
-    }
-
-    if (!interactive) {
-      return null;
-    }
-
-    const manifest = chrome.runtime.getManifest();
-    const clientId = manifest.oauth2?.client_id ? manifest.oauth2.client_id.trim() : null;
-    const scopes = manifest.oauth2?.scopes || [
-      'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
-      'https://www.googleapis.com/auth/calendar.events.readonly'
-    ];
-
-    if (!clientId || clientId.includes('YOUR_GOOGLE_CLIENT_ID')) {
-      throw new Error('manifest.json にクライアントIDが設定されていません。');
-    }
-
-    // CSRF対策のランダムstate値を生成
-    const state = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)) + Date.now().toString(36);
-
-    // Google OAuth 2.0 WebフローのURLを構築
-    const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    authUrl.searchParams.set('client_id', clientId);
-    authUrl.searchParams.set('response_type', 'token');
-    authUrl.searchParams.set('redirect_uri', REDIRECT_URL);
-    authUrl.searchParams.set('scope', scopes.join(' '));
-    authUrl.searchParams.set('state', state);
-    authUrl.searchParams.set('prompt', 'select_account');
-
-    return new Promise((resolve, reject) => {
-      chrome.identity.launchWebAuthFlow({
-        url: authUrl.toString(),
-        interactive: true
-      }, (responseUrl) => {
-        if (chrome.runtime.lastError) {
-          return reject(new Error(chrome.runtime.lastError.message));
-        }
-        if (!responseUrl) {
-          return reject(new Error('認証がキャンセルされました'));
-        }
-
-        try {
-          const urlObj = new URL(responseUrl);
-          const hashParams = new URLSearchParams(urlObj.hash.substring(1));
-          const accessToken = hashParams.get('access_token');
-          const error = hashParams.get('error');
-          const returnState = hashParams.get('state');
-
-          if (error) {
-            return reject(new Error(`OAuthエラー: ${error}`));
-          }
-          if (returnState !== state) {
-            return reject(new Error('OAuth state検証に失敗しました（CSRFの疑いがあります）'));
-          }
-          if (!accessToken) {
-            return reject(new Error('アクセストークンを取得できませんでした'));
-          }
-
-          const expiresIn = hashParams.get('expires_in');
-          saveStoredToken(accessToken, expiresIn).then(() => resolve(accessToken));
-        } catch (e) {
-          reject(e);
-        }
-      });
-    });
-  }
-
   async function handleSignIn() {
     hideAlert();
+    isSigningIn = true;
     try {
-      const token = await getAuthToken(true);
+      const token = await TimeLayerCore.getAuthToken(true);
       if (token) {
         currentAuthToken = token;
         setAuthenticatedUI(true);
@@ -959,25 +601,22 @@
     } catch (err) {
       console.error('[TimeLayer] Sign-in error:', err);
       showAlert(`ログインに失敗しました: ${err.message || 'クライアントIDや設定を確認してください'}`);
+    } finally {
+      isSigningIn = false;
     }
   }
 
   async function handleSignOut() {
-    if (currentAuthToken) {
-      fetch('https://oauth2.googleapis.com/revoke', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `token=${encodeURIComponent(currentAuthToken)}`
-      }).catch(() => {});
-    }
+    const tokenToRevoke = currentAuthToken;
     if (loadController) {
       loadController.abort();
     }
-    await clearStoredToken();
     currentAuthToken = null;
     availableCalendars = [];
     selectedCalendarIds.clear();
+    rawEventsCache = { present: [], '1yr': [], '2yr': [] };
     setAuthenticatedUI(false);
+    await TimeLayerCore.revokeAndClearToken(tokenToRevoke);
   }
 
   // =========================================================================
@@ -1004,13 +643,17 @@
       }
     });
 
-    // 大画面ダッシュボードを新規タブで開く（開いた後にサイドパネルを自動クローズ）
+    // 大画面ダッシュボードを新規タブで開く（開いた後にサイドパネルまたは親ドロワーを自動クローズ）
     const openFullpageBtn = document.getElementById('open-fullpage-btn');
     if (openFullpageBtn) {
       openFullpageBtn.addEventListener('click', async () => {
         try {
           await chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
-          window.close();
+          if (document.body.classList.contains('is-embedded')) {
+            window.parent.postMessage({ type: 'TIMELAYER_CLOSE_DRAWER' }, 'https://calendar.google.com');
+          } else {
+            window.close();
+          }
         } catch (error) {
           console.error('[TimeLayer] Failed to open dashboard tab:', error);
         }
@@ -1031,7 +674,7 @@
     // クイックアクション: すべて選択
     btnCalAll.addEventListener('click', async () => {
       availableCalendars.forEach(c => selectedCalendarIds.add(c.id));
-      await saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
+      await TimeLayerCore.saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
       renderCalendarList();
       scheduleLoadAllLayers();
     });
@@ -1046,7 +689,7 @@
       if (selectedCalendarIds.size === 0 && availableCalendars.length > 0) {
         selectedCalendarIds.add(availableCalendars[0].id);
       }
-      await saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
+      await TimeLayerCore.saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
       renderCalendarList();
       scheduleLoadAllLayers();
     });
@@ -1065,7 +708,7 @@
         }
       });
 
-      await saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
+      await TimeLayerCore.saveStoredSelectedCalendarIds(Array.from(selectedCalendarIds));
       renderCalendarList();
       scheduleLoadAllLayers();
     });
@@ -1160,6 +803,7 @@
   // Theme & Storage Sync Management
   // =========================================================================
   let currentTheme = 'dark';
+  let hasExplicitTheme = false;
 
   function applyTheme(theme) {
     currentTheme = theme === 'light' ? 'light' : 'dark';
@@ -1169,39 +813,64 @@
     }
   }
 
-  function areIdSetsEqual(setA, listB) {
-    if (!listB) return setA.size === 0;
-    const setB = new Set(listB);
-    if (setA.size !== setB.size) return false;
-    for (const item of setA) {
-      if (!setB.has(item)) return false;
-    }
-    return true;
-  }
-
-  function initStorageSync() {
-    chrome.storage.local.get(['timelayer_theme', 'timelayer_week_start'], (res) => {
-      const savedTheme = res.timelayer_theme || 'dark';
-      applyTheme(savedTheme);
-
-      currentWeekStart = res.timelayer_week_start === 'monday' ? 'monday' : 'sunday';
-      updateWeekStartBtnUI();
-      updateWeekNavUI();
+  async function initStorageSync() {
+    const res = await new Promise((resolve) => {
+      chrome.storage.local.get(['timelayer_theme', 'timelayer_week_start'], resolve);
     });
 
-    // 他画面（大画面ダッシュボード等）での設定変更とリアルタイム同期
+    hasExplicitTheme = res.timelayer_theme === 'light' || res.timelayer_theme === 'dark';
+    applyTheme(TimeLayerCore.resolveTheme(res.timelayer_theme));
+
+    currentWeekStart = res.timelayer_week_start === 'monday' ? 'monday' : 'sunday';
+    updateWeekStartBtnUI();
+    updateWeekNavUI();
+
+    const colorSchemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+    if (colorSchemeQuery) {
+      colorSchemeQuery.addEventListener('change', () => {
+        if (!hasExplicitTheme) {
+          applyTheme(TimeLayerCore.resolveTheme(null));
+        }
+      });
+    }
+
+    // 他画面（大画面ダッシュボード等）での設定・認証状態変更とリアルタイム同期
+    const tokenAreaName = chrome.storage.session ? 'session' : 'local';
     chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === tokenAreaName && changes[TimeLayerCore.TOKEN_KEY]) {
+        const nextToken = changes[TimeLayerCore.TOKEN_KEY].newValue?.accessToken || null;
+        if (nextToken && !isSigningIn && nextToken !== currentAuthToken) {
+          currentAuthToken = nextToken;
+          setAuthenticatedUI(true);
+          updateWeekNavUI();
+          loadCalendars().then(() => {
+            if (currentAuthToken) return loadAllLayers();
+          }).catch(() => {});
+        } else if (!nextToken && currentAuthToken) {
+          if (loadController) {
+            loadController.abort();
+          }
+          currentAuthToken = null;
+          availableCalendars = [];
+          selectedCalendarIds.clear();
+          rawEventsCache = { present: [], '1yr': [], '2yr': [] };
+          setAuthenticatedUI(false);
+        }
+      }
+
       if (area !== 'local') return;
 
       // 1. テーマの同期
       if (changes.timelayer_theme) {
-        applyTheme(changes.timelayer_theme.newValue);
+        const nextTheme = changes.timelayer_theme.newValue;
+        hasExplicitTheme = nextTheme === 'light' || nextTheme === 'dark';
+        applyTheme(TimeLayerCore.resolveTheme(nextTheme));
       }
 
       // 2. カレンダー選択状態の同期
       if (changes.timelayer_selected_calendar_ids) {
         const newIds = changes.timelayer_selected_calendar_ids.newValue;
-        if (Array.isArray(newIds) && !areIdSetsEqual(selectedCalendarIds, newIds)) {
+        if (Array.isArray(newIds) && !TimeLayerCore.areIdSetsEqual(selectedCalendarIds, newIds)) {
           const validIds = availableCalendars.length > 0
             ? newIds.filter(id => availableCalendars.some(c => c.id === id))
             : newIds;
@@ -1230,6 +899,7 @@
     if (themeToggleBtn) {
       themeToggleBtn.addEventListener('click', () => {
         const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+        hasExplicitTheme = true;
         applyTheme(nextTheme);
         chrome.storage.local.set({ timelayer_theme: nextTheme });
       });
@@ -1238,7 +908,7 @@
 
   // 初期化: 既存のサイレントログインを検証
   async function init() {
-    initStorageSync();
+    await initStorageSync();
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('embedded') === 'true') {
@@ -1250,7 +920,7 @@
     updateWeekNavUI();
 
     try {
-      const token = await getAuthToken(false);
+      const token = await TimeLayerCore.getAuthToken(false);
       if (token) {
         currentAuthToken = token;
         setAuthenticatedUI(true);
