@@ -132,8 +132,8 @@
   function updateWeekStartBtnUI() {
     if (weekStartToggleBtn) {
       const isMon = currentWeekStart === 'monday';
-      weekStartToggleBtn.textContent = isMon ? '月曜始' : '日曜始';
-      weekStartToggleBtn.title = isMon ? '週の開始: 月曜（クリックで日曜始まりに切替）' : '週の開始: 日曜（クリックで月曜始まりに切替）';
+      weekStartToggleBtn.textContent = isMon ? TimeLayerCore.t('weekStartMon') : TimeLayerCore.t('weekStartSun');
+      weekStartToggleBtn.title = isMon ? TimeLayerCore.t('weekStartMonTitle') : TimeLayerCore.t('weekStartSunTitle');
     }
   }
 
@@ -143,17 +143,17 @@
     weekRangeText.textContent = TimeLayerCore.formatRangeText(currentWeekRange.start, currentWeekRange.end, true);
 
     if (currentOffsetWeeks === 0) {
-      weekRelativeLabel.textContent = '今週';
+      weekRelativeLabel.textContent = TimeLayerCore.t('thisWeek');
       weekRelativeLabel.style.background = 'rgba(16, 185, 129, 0.15)';
       weekRelativeLabel.style.color = '#34d399';
       if (todayWeekBtn) todayWeekBtn.classList.add('hidden');
     } else if (currentOffsetWeeks > 0) {
-      weekRelativeLabel.textContent = `${currentOffsetWeeks}週後`;
+      weekRelativeLabel.textContent = TimeLayerCore.t('weeksLater', { n: currentOffsetWeeks });
       weekRelativeLabel.style.background = 'rgba(59, 130, 246, 0.15)';
       weekRelativeLabel.style.color = '#60a5fa';
       if (todayWeekBtn) todayWeekBtn.classList.remove('hidden');
     } else {
-      weekRelativeLabel.textContent = `${Math.abs(currentOffsetWeeks)}週前`;
+      weekRelativeLabel.textContent = TimeLayerCore.t('weeksAgo', { n: Math.abs(currentOffsetWeeks) });
       weekRelativeLabel.style.background = 'rgba(245, 158, 11, 0.15)';
       weekRelativeLabel.style.color = '#fbbf24';
       if (todayWeekBtn) todayWeekBtn.classList.remove('hidden');
@@ -228,9 +228,9 @@
       if (err.message === 'AUTH_EXPIRED') {
         currentAuthToken = null;
         setAuthenticatedUI(false);
-        showAlert('認証セッションが切れました。再度ログインしてください。');
+        showAlert(TimeLayerCore.t('errAuthExpired'));
       } else {
-        showAlert(`カレンダー一覧の取得に失敗しました: ${err.message}`);
+        showAlert(TimeLayerCore.t('errFetchCalList', { msg: err.message }));
       }
     } finally {
       isFetchingCalendars = false;
@@ -242,7 +242,7 @@
     calendarList.innerHTML = '';
 
     if (availableCalendars.length === 0) {
-      calendarList.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-tertiary);font-size:12px;">利用可能なカレンダーが見つかりません</div>';
+      calendarList.innerHTML = `<div style="padding:16px;text-align:center;color:var(--text-tertiary);font-size:12px;">${TimeLayerCore.escapeHtml(TimeLayerCore.t('noCalendarsFound'))}</div>`;
       return;
     }
 
@@ -254,10 +254,10 @@
 
       let tagsHtml = '';
       if (cal.primary) {
-        tagsHtml += '<span class="cal-tag cal-tag-primary">メイン</span>';
+        tagsHtml += `<span class="cal-tag cal-tag-primary">${TimeLayerCore.escapeHtml(TimeLayerCore.t('tagPrimary'))}</span>`;
       }
       if (cal.isHoliday) {
-        tagsHtml += '<span class="cal-tag cal-tag-holiday">🎌 祝日</span>';
+        tagsHtml += `<span class="cal-tag cal-tag-holiday">${TimeLayerCore.escapeHtml(TimeLayerCore.t('tagHoliday'))}</span>`;
       }
 
       itemEl.innerHTML = `
@@ -295,8 +295,8 @@
     const total = availableCalendars.length;
     const selected = selectedCalendarIds.size;
 
-    calendarSelectedSummary.textContent = `${selected}/${total}件 選択中`;
-    footerCalCount.textContent = `${selected}カレンダー選択中`;
+    calendarSelectedSummary.textContent = TimeLayerCore.t('calSelectedSummary', { selected, total });
+    footerCalCount.textContent = TimeLayerCore.t('footerCalCount', { selected });
 
     if (selected > 0) {
       calendarBadgeCount.textContent = String(selected);
@@ -377,16 +377,16 @@
       }
 
       const now = new Date();
-      lastUpdatedEl.textContent = `同期完了: ${TimeLayerCore.formatTime(now)}`;
+      lastUpdatedEl.textContent = TimeLayerCore.t('syncedDashboard', { time: TimeLayerCore.formatTime(now) });
     } catch (err) {
       if (TimeLayerCore.isAbortError(err) || signal.aborted) return;
       console.error('[TimeLayer Dashboard] Load error:', err);
       if (err.message === 'AUTH_EXPIRED') {
         currentAuthToken = null;
         setAuthenticatedUI(false);
-        showAlert('認証セッションが切れました。再度ログインしてください。');
+        showAlert(TimeLayerCore.t('errAuthExpired'));
       } else {
-        showAlert(`カレンダーの取得に失敗しました: ${err.message}`);
+        showAlert(TimeLayerCore.t('errFetchEvents', { msg: err.message }));
       }
     } finally {
       if (loadController === controller) {
@@ -418,7 +418,7 @@
         const dayOfWeek = d.getDay();
         const nameEl = headerCol.querySelector('.day-name');
         if (nameEl) {
-          nameEl.textContent = TimeLayerCore.DAY_NAMES[dayOfWeek];
+          nameEl.textContent = TimeLayerCore.getDayName(dayOfWeek);
           nameEl.className = 'day-name';
           if (dayOfWeek === 0) nameEl.classList.add('day-sun');
           if (dayOfWeek === 6) nameEl.classList.add('day-sat');
@@ -429,14 +429,14 @@
     }
 
     // 地層ラベル行の更新
-    matrixLabels.present.date.textContent = `${rangePresent.year}年 (${rangePresent.start.getMonth() + 1}/${rangePresent.start.getDate()}〜${rangePresent.end.getMonth() + 1}/${rangePresent.end.getDate()})`;
-    matrixLabels.present.count.textContent = `${eventsPresent.length}件`;
+    matrixLabels.present.date.textContent = TimeLayerCore.formatMatrixLayerDate(rangePresent);
+    matrixLabels.present.count.textContent = TimeLayerCore.formatEventCount(eventsPresent.length);
 
-    matrixLabels['1yr'].date.textContent = `${range1yr.year}年 (${range1yr.start.getMonth() + 1}/${range1yr.start.getDate()}〜${range1yr.end.getMonth() + 1}/${range1yr.end.getDate()})`;
-    matrixLabels['1yr'].count.textContent = `${events1yr.length}件`;
+    matrixLabels['1yr'].date.textContent = TimeLayerCore.formatMatrixLayerDate(range1yr);
+    matrixLabels['1yr'].count.textContent = TimeLayerCore.formatEventCount(events1yr.length);
 
-    matrixLabels['2yr'].date.textContent = `${range2yr.year}年 (${range2yr.start.getMonth() + 1}/${range2yr.start.getDate()}〜${range2yr.end.getMonth() + 1}/${range2yr.end.getDate()})`;
-    matrixLabels['2yr'].count.textContent = `${events2yr.length}件`;
+    matrixLabels['2yr'].date.textContent = TimeLayerCore.formatMatrixLayerDate(range2yr);
+    matrixLabels['2yr'].count.textContent = TimeLayerCore.formatEventCount(events2yr.length);
 
     // 3つの地層セルにイベントを配置
     renderMatrixLayerRow('present', rangePresent.start, eventsPresent, todayKey);
@@ -563,7 +563,7 @@
           if (a.totalDays !== b.totalDays) {
             return b.totalDays - a.totalDays;
           }
-          return (a.evt.summary || '').localeCompare(b.evt.summary || '');
+          return (a.evt.summary || '').localeCompare(b.evt.summary || '', TimeLayerCore.getLang());
         });
 
         // 貪欲行割り当て (Interval Packing): 空いている最小の行(row)に隙間なく詰める
@@ -668,7 +668,7 @@
       bannerEl.style.gridRow = `${assignedRow + 1}`;
     }
 
-    const summary = item.summary || '(タイトルなし)';
+    const summary = item.summary || TimeLayerCore.t('untitledEvent');
     const prevArrow = continuesPrev ? '<span style="font-size:9px;opacity:0.85;">◀</span> ' : '';
     const nextArrow = continuesNext ? ' <span style="font-size:9px;opacity:0.85;">▶</span>' : '';
 
@@ -677,7 +677,7 @@
     const calPill = item._calendarSummary && !isSingleDay
       ? `<span class="banner-pill" title="${TimeLayerCore.escapeHtml(item._calendarSummary)}">${TimeLayerCore.escapeHtml(item._calendarSummary)}</span>`
       : '';
-    const daysBadge = totalDays > 1 ? `<span class="banner-pill">${totalDays}日間</span>` : '';
+    const daysBadge = totalDays > 1 ? `<span class="banner-pill">${TimeLayerCore.escapeHtml(TimeLayerCore.t('multiDaySpan', { days: totalDays }))}</span>` : '';
 
     bannerEl.innerHTML = `
       <div class="banner-title" title="${TimeLayerCore.escapeHtml(summary)}">
@@ -705,7 +705,7 @@
   // Render: 3-Column Columns View (3列縦スクロール & 曜日整列)
   // =========================================================================
   function renderColumnEvents(columnObj, events, weekStartDate) {
-    columnObj.count.textContent = `${events.length}件`;
+    columnObj.count.textContent = TimeLayerCore.formatEventCount(events.length);
     const container = columnObj.eventsContainer;
     container.innerHTML = '';
 
@@ -734,7 +734,7 @@
           if (isInRange) {
             group.items.push(evt);
             if (evt._isHoliday) {
-              group.holidays.push(evt.summary || '祝日');
+              group.holidays.push(evt.summary || TimeLayerCore.t('defaultHolidayName'));
             }
           }
         });
@@ -750,7 +750,7 @@
           if (group.dateKey >= startStr && group.dateKey <= endStr) {
             group.items.push(evt);
             if (evt._isHoliday) {
-              group.holidays.push(evt.summary || '祝日');
+              group.holidays.push(evt.summary || TimeLayerCore.t('defaultHolidayName'));
             }
           }
         });
@@ -786,7 +786,7 @@
           ${isToday ? '<span class="today-indicator">TODAY</span>' : ''}
           ${isHoliday ? `<span class="day-holiday-badge">🎌 ${TimeLayerCore.escapeHtml(holidayName)}</span>` : ''}
         </div>
-        <span style="font-size: 11px; color: var(--text-tertiary);">${group.items.length > 0 ? `${group.items.length}件` : '-'}</span>
+        <span style="font-size: 11px; color: var(--text-tertiary);">${group.items.length > 0 ? TimeLayerCore.escapeHtml(TimeLayerCore.formatEventCount(group.items.length)) : '-'}</span>
       `;
       dayGroupEl.appendChild(dayHeader);
 
@@ -796,7 +796,7 @@
       if (group.items.length === 0) {
         const emptyEl = document.createElement('div');
         emptyEl.className = 'day-empty-placeholder';
-        emptyEl.textContent = '予定なし';
+        emptyEl.textContent = TimeLayerCore.t('noEventsDay');
         eventsListEl.appendChild(emptyEl);
       } else {
         group.items.forEach(item => {
@@ -865,9 +865,9 @@
       const endStr = item.end?.date || startStr;
       const totalDays = Math.max(1, TimeLayerCore.getDayDifference(startStr, endStr));
       if (totalDays > 1) {
-        timeHtml = `<span class="all-day-tag">終日 (${totalDays}日間)</span>`;
+        timeHtml = `<span class="all-day-tag">${TimeLayerCore.escapeHtml(TimeLayerCore.t('allDayMulti', { days: totalDays }))}</span>`;
       } else {
-        timeHtml = '<span class="all-day-tag">終日</span>';
+        timeHtml = `<span class="all-day-tag">${TimeLayerCore.escapeHtml(TimeLayerCore.t('allDay'))}</span>`;
       }
     } else if (item.start?.dateTime) {
       const s = new Date(item.start.dateTime);
@@ -878,11 +878,11 @@
         const eStr = TimeLayerCore.formatDateOnly(isMidnight ? new Date(e.getTime() - 1000) : e);
         if (sStr !== eStr && currentDateKey) {
           if (currentDateKey === sStr) {
-            timeHtml = `<span class="event-time">${TimeLayerCore.formatTime(s)}〜</span>`;
+            timeHtml = `<span class="event-time">${TimeLayerCore.escapeHtml(TimeLayerCore.t('timeStartOnly', { time: TimeLayerCore.formatTime(s) }))}</span>`;
           } else if (currentDateKey === eStr) {
-            timeHtml = `<span class="event-time">〜${TimeLayerCore.formatTime(e)}</span>`;
+            timeHtml = `<span class="event-time">${TimeLayerCore.escapeHtml(TimeLayerCore.t('timeEndOnly', { time: TimeLayerCore.formatTime(e) }))}</span>`;
           } else {
-            timeHtml = '<span class="event-time">終日（継続）</span>';
+            timeHtml = `<span class="event-time">${TimeLayerCore.escapeHtml(TimeLayerCore.t('allDayCont'))}</span>`;
           }
         } else {
           timeHtml = `<span class="event-time">${TimeLayerCore.formatTime(s)} - ${TimeLayerCore.formatTime(e)}</span>`;
@@ -892,7 +892,7 @@
       }
     }
 
-    const summary = item.summary || '(タイトルなし)';
+    const summary = item.summary || TimeLayerCore.t('untitledEvent');
     const location = item.location ? `<div class="event-location">📍 ${TimeLayerCore.escapeHtml(item.location)}</div>` : '';
     const calPill = item._calendarSummary ? `<span class="event-cal-pill" title="${TimeLayerCore.escapeHtml(item._calendarSummary)}">${TimeLayerCore.escapeHtml(item._calendarSummary)}</span>` : '';
 
@@ -959,7 +959,7 @@
       document.querySelectorAll('#view-matrix .search-matched-item').length :
       document.querySelectorAll('#view-columns .search-matched-item').length;
 
-    searchMatchCount.textContent = `${effectiveCount}件一致`;
+    searchMatchCount.textContent = TimeLayerCore.t('searchMatchedCount', { n: effectiveCount });
     searchMatchCount.classList.remove('hidden');
     requestAnimationFrame(() => {
       syncColumnDayHeights();
@@ -985,7 +985,7 @@
       }
     } catch (err) {
       console.error('[TimeLayer Dashboard] Sign-in error:', err);
-      showAlert(`ログインに失敗しました: ${err.message || 'クライアントIDや設定を確認してください'}`);
+      showAlert(TimeLayerCore.t('errSignIn', { msg: err.message || TimeLayerCore.t('errSignInFallback') }));
     } finally {
       isSigningIn = false;
     }
@@ -1205,7 +1205,7 @@
         try {
           await navigator.clipboard.writeText(redirectUriInput.value);
           const origText = copyUriBtn.textContent;
-          copyUriBtn.textContent = 'コピー完了!';
+          copyUriBtn.textContent = TimeLayerCore.t('copied');
           setTimeout(() => { copyUriBtn.textContent = origText; }, 2000);
         } catch {
           redirectUriInput.select();
@@ -1224,7 +1224,9 @@
     currentTheme = theme === 'light' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', currentTheme);
     if (themeToggleBtn) {
-      themeToggleBtn.title = currentTheme === 'light' ? 'ダークモードに切り替え' : 'ライトモードに切り替え';
+      themeToggleBtn.title = currentTheme === 'light'
+        ? TimeLayerCore.t('themeToggleDark')
+        : TimeLayerCore.t('themeToggleLight');
     }
   }
 
@@ -1323,6 +1325,19 @@
 
   // 初期化
   async function init() {
+    TimeLayerCore.applyI18nToDOM();
+    updateCalendarBadge();
+    Object.values(matrixLabels).forEach((lbl) => {
+      if (lbl.count) lbl.count.textContent = TimeLayerCore.formatEventCount(0);
+    });
+    Object.values(columns).forEach((col) => {
+      if (col.count) col.count.textContent = TimeLayerCore.formatEventCount(0);
+    });
+    for (let day = 0; day < 7; day++) {
+      const nameEl = document.querySelector(`.matrix-day-header[data-day="${day}"] .day-name`);
+      if (nameEl) nameEl.textContent = TimeLayerCore.getDayName(day);
+    }
+
     await initStorageSync();
     setupEventListeners();
     updateWeekNavUI();

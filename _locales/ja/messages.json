@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "TimeLayer - カレンダー地層ビュー"
+  },
+  "extDescription": {
+    "message": "今週と過去（1年前、2年前）のGoogleカレンダーの予定を地層のように重ねて比較・振り返りができるマルチビュー拡張機能（ダーク/ライトモード対応、サイドパネル・大画面ダッシュボード・Googleカレンダー直接埋め込み）"
+  },
+  "actionTitle": {
+    "message": "TimeLayerを開く"
+  },
+  "contextMenuOpenDashboard": {
+    "message": "🪐 TimeLayer 大画面ダッシュボードを開く"
+  }
+}

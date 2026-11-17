@@ -123,8 +123,8 @@
   function updateWeekStartBtnUI() {
     if (weekStartToggleBtn) {
       const isMon = currentWeekStart === 'monday';
-      weekStartToggleBtn.textContent = isMon ? '月曜始' : '日曜始';
-      weekStartToggleBtn.title = isMon ? '週の開始: 月曜（クリックで日曜始まりに切替）' : '週の開始: 日曜（クリックで月曜始まりに切替）';
+      weekStartToggleBtn.textContent = isMon ? TimeLayerCore.t('weekStartMon') : TimeLayerCore.t('weekStartSun');
+      weekStartToggleBtn.title = isMon ? TimeLayerCore.t('weekStartMonTitle') : TimeLayerCore.t('weekStartSunTitle');
     }
   }
 
@@ -134,17 +134,17 @@
     weekRangeText.textContent = TimeLayerCore.formatRangeText(currentWeekRange.start, currentWeekRange.end, true);
 
     if (currentOffsetWeeks === 0) {
-      weekRelativeLabel.textContent = '今週';
+      weekRelativeLabel.textContent = TimeLayerCore.t('thisWeek');
       weekRelativeLabel.style.background = 'rgba(16, 185, 129, 0.15)';
       weekRelativeLabel.style.color = '#34d399';
       if (todayWeekBtn) todayWeekBtn.classList.add('hidden');
     } else if (currentOffsetWeeks > 0) {
-      weekRelativeLabel.textContent = `${currentOffsetWeeks}週後`;
+      weekRelativeLabel.textContent = TimeLayerCore.t('weeksLater', { n: currentOffsetWeeks });
       weekRelativeLabel.style.background = 'rgba(59, 130, 246, 0.15)';
       weekRelativeLabel.style.color = '#60a5fa';
       if (todayWeekBtn) todayWeekBtn.classList.remove('hidden');
     } else {
-      weekRelativeLabel.textContent = `${Math.abs(currentOffsetWeeks)}週前`;
+      weekRelativeLabel.textContent = TimeLayerCore.t('weeksAgo', { n: Math.abs(currentOffsetWeeks) });
       weekRelativeLabel.style.background = 'rgba(245, 158, 11, 0.15)';
       weekRelativeLabel.style.color = '#fbbf24';
       if (todayWeekBtn) todayWeekBtn.classList.remove('hidden');
@@ -195,9 +195,9 @@
       if (err.message === 'AUTH_EXPIRED') {
         currentAuthToken = null;
         setAuthenticatedUI(false);
-        showAlert('認証セッションが切れました。再度ログインしてください。');
+        showAlert(TimeLayerCore.t('errAuthExpired'));
       } else {
-        showAlert(`カレンダー一覧の取得に失敗しました: ${err.message}`);
+        showAlert(TimeLayerCore.t('errFetchCalList', { msg: err.message }));
       }
     } finally {
       isFetchingCalendars = false;
@@ -209,7 +209,7 @@
     calendarList.innerHTML = '';
 
     if (availableCalendars.length === 0) {
-      calendarList.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text-tertiary);font-size:11px;">利用可能なカレンダーが見つかりません</div>';
+      calendarList.innerHTML = `<div style="padding:12px;text-align:center;color:var(--text-tertiary);font-size:11px;">${TimeLayerCore.escapeHtml(TimeLayerCore.t('noCalendarsFound'))}</div>`;
       return;
     }
 
@@ -221,10 +221,10 @@
 
       let tagsHtml = '';
       if (cal.primary) {
-        tagsHtml += '<span class="cal-tag cal-tag-primary">メイン</span>';
+        tagsHtml += `<span class="cal-tag cal-tag-primary">${TimeLayerCore.escapeHtml(TimeLayerCore.t('tagPrimary'))}</span>`;
       }
       if (cal.isHoliday) {
-        tagsHtml += '<span class="cal-tag cal-tag-holiday">🎌 祝日</span>';
+        tagsHtml += `<span class="cal-tag cal-tag-holiday">${TimeLayerCore.escapeHtml(TimeLayerCore.t('tagHoliday'))}</span>`;
       }
 
       itemEl.innerHTML = `
@@ -262,7 +262,7 @@
     const total = availableCalendars.length;
     const selected = selectedCalendarIds.size;
 
-    calendarSelectedSummary.textContent = `${selected}/${total}件 選択中`;
+    calendarSelectedSummary.textContent = TimeLayerCore.t('calSelectedSummary', { selected, total });
 
     if (selected > 0) {
       calendarBadgeCount.textContent = String(selected);
@@ -341,16 +341,19 @@
 
       // 最終更新時刻
       const now = new Date();
-      lastUpdatedEl.textContent = `同期: ${TimeLayerCore.formatTime(now)} (${selectedCalendarIds.size}カレンダー)`;
+      lastUpdatedEl.textContent = TimeLayerCore.t('syncedSidepanel', {
+        time: TimeLayerCore.formatTime(now),
+        count: selectedCalendarIds.size
+      });
     } catch (err) {
       if (TimeLayerCore.isAbortError(err) || signal.aborted) return;
       console.error('[TimeLayer] Error fetching calendar events:', err);
       if (err.message === 'AUTH_EXPIRED') {
         currentAuthToken = null;
         setAuthenticatedUI(false);
-        showAlert('認証セッションが切れました。再度ログインしてください。');
+        showAlert(TimeLayerCore.t('errAuthExpired'));
       } else {
-        showAlert(`カレンダーの取得に失敗しました: ${err.message}`);
+        showAlert(TimeLayerCore.t('errFetchEvents', { msg: err.message }));
       }
     } finally {
       if (loadController === controller) {
@@ -364,7 +367,7 @@
   const scheduleLoadAllLayers = TimeLayerCore.debounce(() => loadAllLayers(), 350);
 
   function renderLayerEvents(layerObj, events, weekStartDate) {
-    layerObj.count.textContent = `${events.length}件`;
+    layerObj.count.textContent = TimeLayerCore.formatEventCount(events.length);
     const container = layerObj.eventsContainer;
     container.innerHTML = '';
 
@@ -372,13 +375,13 @@
       container.innerHTML = `
         <div class="layer-empty-state">
           <span class="layer-empty-icon">🌱</span>
-          <span>選択されたカレンダーに予定はありません</span>
+          <span>${TimeLayerCore.escapeHtml(TimeLayerCore.t('emptyLayerEvents'))}</span>
         </div>
       `;
       return;
     }
 
-    // 7曜日（日〜土）のグループマップを初期化
+    // 7曜日のグループマップを初期化
     const dayGroups = new Map();
 
     for (let i = 0; i < 7; i++) {
@@ -397,7 +400,7 @@
           if (isInRange) {
             group.items.push(evt);
             if (evt._isHoliday) {
-              group.holidays.push(evt.summary || '祝日');
+              group.holidays.push(evt.summary || TimeLayerCore.t('defaultHolidayName'));
             }
           }
         });
@@ -414,7 +417,7 @@
           if (key >= startStr && key <= endStr) {
             group.items.push(evt);
             if (evt._isHoliday) {
-              group.holidays.push(evt.summary || '祝日');
+              group.holidays.push(evt.summary || TimeLayerCore.t('defaultHolidayName'));
             }
           }
         });
@@ -455,7 +458,7 @@
           ${isToday ? '<span class="today-indicator">TODAY</span>' : ''}
           ${isHoliday ? `<span class="day-holiday-badge">🎌 ${TimeLayerCore.escapeHtml(holidayName)}</span>` : ''}
         </div>
-        <span style="font-size: 10px; color: var(--text-tertiary);">${group.items.length}件</span>
+        <span style="font-size: 10px; color: var(--text-tertiary);">${TimeLayerCore.formatEventCount(group.items.length)}</span>
       `;
       dayGroupEl.appendChild(dayHeader);
 
@@ -488,9 +491,9 @@
       const endStr = item.end?.date || startStr;
       const totalDays = Math.max(1, TimeLayerCore.getDayDifference(startStr, endStr));
       if (totalDays > 1) {
-        timeHtml = `<span class="all-day-tag">終日 (${totalDays}日間)</span>`;
+        timeHtml = `<span class="all-day-tag">${TimeLayerCore.escapeHtml(TimeLayerCore.t('allDayMulti', { days: totalDays }))}</span>`;
       } else {
-        timeHtml = '<span class="all-day-tag">終日</span>';
+        timeHtml = `<span class="all-day-tag">${TimeLayerCore.escapeHtml(TimeLayerCore.t('allDay'))}</span>`;
       }
     } else if (item.start?.dateTime) {
       const s = new Date(item.start.dateTime);
@@ -501,11 +504,11 @@
         const eStr = TimeLayerCore.formatDateOnly(isMidnight ? new Date(e.getTime() - 1000) : e);
         if (sStr !== eStr && currentDateKey) {
           if (currentDateKey === sStr) {
-            timeHtml = `<span class="event-time">${TimeLayerCore.formatTime(s)}〜</span>`;
+            timeHtml = `<span class="event-time">${TimeLayerCore.escapeHtml(TimeLayerCore.t('timeStartOnly', { time: TimeLayerCore.formatTime(s) }))}</span>`;
           } else if (currentDateKey === eStr) {
-            timeHtml = `<span class="event-time">〜${TimeLayerCore.formatTime(e)}</span>`;
+            timeHtml = `<span class="event-time">${TimeLayerCore.escapeHtml(TimeLayerCore.t('timeEndOnly', { time: TimeLayerCore.formatTime(e) }))}</span>`;
           } else {
-            timeHtml = '<span class="event-time">終日（継続）</span>';
+            timeHtml = `<span class="event-time">${TimeLayerCore.escapeHtml(TimeLayerCore.t('allDayCont'))}</span>`;
           }
         } else {
           timeHtml = `<span class="event-time">${TimeLayerCore.formatTime(s)} - ${TimeLayerCore.formatTime(e)}</span>`;
@@ -515,7 +518,7 @@
       }
     }
 
-    const summary = item.summary || '(タイトルなし)';
+    const summary = item.summary || TimeLayerCore.t('untitledEvent');
     const location = item.location ? `<div class="event-location">📍 ${TimeLayerCore.escapeHtml(item.location)}</div>` : '';
     const calPill = item._calendarSummary ? `<span class="event-cal-pill" title="${TimeLayerCore.escapeHtml(item._calendarSummary)}">${TimeLayerCore.escapeHtml(item._calendarSummary)}</span>` : '';
 
@@ -577,7 +580,7 @@
       }
     });
 
-    searchMatchCount.textContent = `${matchedCount}件一致`;
+    searchMatchCount.textContent = TimeLayerCore.t('searchMatchedCount', { n: matchedCount });
     searchMatchCount.classList.remove('hidden');
   }
 
@@ -600,7 +603,7 @@
       }
     } catch (err) {
       console.error('[TimeLayer] Sign-in error:', err);
-      showAlert(`ログインに失敗しました: ${err.message || 'クライアントIDや設定を確認してください'}`);
+      showAlert(TimeLayerCore.t('errSignIn', { msg: err.message || TimeLayerCore.t('errSignInFallback') }));
     } finally {
       isSigningIn = false;
     }
@@ -648,7 +651,11 @@
     if (openFullpageBtn) {
       openFullpageBtn.addEventListener('click', async () => {
         try {
-          await chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+          const langParam = new URLSearchParams(window.location.search).get('lang');
+          const dashboardPath = (langParam === 'en' || langParam === 'ja')
+            ? `dashboard.html?lang=${encodeURIComponent(langParam)}`
+            : 'dashboard.html';
+          await chrome.tabs.create({ url: chrome.runtime.getURL(dashboardPath) });
           if (document.body.classList.contains('is-embedded')) {
             window.parent.postMessage({ type: 'TIMELAYER_CLOSE_DRAWER' }, 'https://calendar.google.com');
           } else {
@@ -790,7 +797,7 @@
         try {
           await navigator.clipboard.writeText(redirectUriInput.value);
           const origText = copyUriBtn.textContent;
-          copyUriBtn.textContent = 'コピー完了!';
+          copyUriBtn.textContent = TimeLayerCore.t('copied');
           setTimeout(() => { copyUriBtn.textContent = origText; }, 2000);
         } catch {
           redirectUriInput.select();
@@ -809,7 +816,9 @@
     currentTheme = theme === 'light' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', currentTheme);
     if (themeToggleBtn) {
-      themeToggleBtn.title = currentTheme === 'light' ? 'ダークモードに切り替え' : 'ライトモードに切り替え';
+      themeToggleBtn.title = currentTheme === 'light'
+        ? TimeLayerCore.t('themeToggleDark')
+        : TimeLayerCore.t('themeToggleLight');
     }
   }
 
@@ -908,6 +917,12 @@
 
   // 初期化: 既存のサイレントログインを検証
   async function init() {
+    TimeLayerCore.applyI18nToDOM();
+    updateCalendarBadge();
+    Object.values(layers).forEach((layer) => {
+      if (layer.count) layer.count.textContent = TimeLayerCore.formatEventCount(0);
+    });
+
     await initStorageSync();
 
     const urlParams = new URLSearchParams(window.location.search);

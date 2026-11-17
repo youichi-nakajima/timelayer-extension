@@ -78,7 +78,72 @@ GitHub: https://github.com/youichi-nakajima/timelayer-extension
   - **サブカテゴリ**: `ワークフローと計画` (Workflow & Planning) ※おすすめ（または `ツール`）
 
 ### ■ 言語 (Language)
-- `日本語` (Japanese)
+- `日本語` (Japanese) / `英語` (English - Chrome Web Store 多言語掲載対応)
+
+---
+
+## 1-B. ストアの掲載情報：英語 (English Store Listing)
+
+Chrome Web Store デベロッパーダッシュボード右上の言語切り替え（または「言語を追加」から `English` を選択）で登録する英語用の下書きです。
+
+### ■ Extension Name
+```text
+TimeLayer - Calendar Strata Viewer
+```
+
+### ■ Description (Max 16,000 characters)
+```text
+[Layer Your Google Calendar Like Geological Strata]
+
+TimeLayer connects with Google Calendar to overlay and compare your schedules from "This Week", "1 Year Ago", and "2 Years Ago" in a unified multi-layered view.
+
+"What was I doing around this time last year?"
+"How did I handle the busy season two years ago?"
+Reflect on your past schedules and habits instantly without scrolling back through endless calendar pages.
+
+
+✨ 3 Display Styles (Multi-View Experience)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Choose the view that fits your workflow:
+
+1. 📌 Chrome Side Panel
+An always-accessible side panel that keeps your browsing uninterrupted—ideal for quick comparisons and daily reflection.
+
+2. 🪐 Panoramic Dashboard
+A full-screen workspace opened in a new tab:
+• Matrix View: Compare 7 days horizontally across 3 temporal strata vertically, with multi-day banners packed cleanly on top.
+• 3-Column View: View Present, 1 Year Ago, and 2 Years Ago side by side with aligned day rows and synchronized scrolling.
+
+3. 🚀 Google Calendar Embedded Drawer
+A floating launcher button sits in the bottom-right corner of calendar.google.com, opening a slide-in drawer with one click.
+
+
+💡 Key Features
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 3 Strata Layers: Surface / Present (Emerald), Middle / 1 Year Ago (Amber), Deep / 2 Years Ago (Purple)
+• Smart Auto-Close: Opening the Panoramic Dashboard automatically closes the side panel or embedded drawer to keep your workspace tidy.
+• One-Click Week Start Toggle: Switch effortlessly between Sunday-start and Monday-start weeks.
+• Real-Time Sync Across Views: Calendar selections, theme changes, week start settings, and sign-in state stay synchronized in real time across open views.
+• Cross-Strata Instant Search: Filter and highlight events by title, location, or calendar across all three years simultaneously.
+• Multi-Calendar Support: Toggle primary, work, shared, and holiday calendars freely.
+• Dark / Light Mode: Automatically follows your system appearance and supports one-click manual switching.
+
+
+🔒 Privacy & Security by Design
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TimeLayer is built with user privacy as its highest priority:
+
+• Zero External Servers & Strictly Local: Calendar data is exchanged directly between your browser and official Google APIs. Nothing is ever transmitted to or stored on any external or developer-owned server.
+• Least-Privilege Permissions (Read-Only): Requests only read-only calendar list and event scopes. Never requests permission to create, edit, or delete events.
+• In-Memory Token Management: OAuth tokens are stored strictly in browser session memory and expire automatically within 1 hour (or upon sign-out / browser restart).
+• Zero External CDN Requests: Uses OS-native system fonts with no external font or tracking requests.
+
+
+☕ Support
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TimeLayer is an open-source project developed independently.
+GitHub: https://github.com/youichi-nakajima/timelayer-extension
+```
 
 ---
 

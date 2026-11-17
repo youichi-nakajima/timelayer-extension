@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TimeLayer - 大画面地層ダッシュボード</title>
+  <title data-i18n="pageTitleDashboard">TimeLayer - 大画面地層ダッシュボード</title>
   <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
@@ -18,23 +18,23 @@
         </div>
         <div class="brand-info">
           <h1 class="brand-title">TimeLayer <span class="badge-pro">Panoramic Strata</span></h1>
-          <span class="brand-subtitle">過去と現在を地層のように重ねる大画面パノラマビュー</span>
+          <span class="brand-subtitle" data-i18n="dashboardSubtitle">過去と現在を地層のように重ねる大画面パノラマビュー</span>
         </div>
       </div>
 
       <!-- Center Week Navigator & View Switcher -->
       <div class="header-nav-center">
         <div class="week-nav-bar">
-          <button id="prev-week-btn" class="nav-btn" title="前の週" aria-label="前の週">
+          <button id="prev-week-btn" class="nav-btn" title="前の週" aria-label="前の週" data-i18n-title="prevWeek" data-i18n-aria-label="prevWeek">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
           </button>
           <div class="week-info">
-            <span id="week-relative-label" class="week-relative-tag">今週</span>
-            <span id="week-range-text" class="week-range-text">読み込み中...</span>
+            <span id="week-relative-label" class="week-relative-tag" data-i18n="thisWeek">今週</span>
+            <span id="week-range-text" class="week-range-text" data-i18n="loading">読み込み中...</span>
           </div>
-          <button id="next-week-btn" class="nav-btn" title="次の週" aria-label="次の週">
+          <button id="next-week-btn" class="nav-btn" title="次の週" aria-label="次の週" data-i18n-title="nextWeek" data-i18n-aria-label="nextWeek">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
@@ -42,29 +42,29 @@
         </div>
 
         <!-- Return to current week button (hidden when in current week) -->
-        <button id="today-week-btn" class="pill-btn today-return-btn hidden" title="今週に戻る">今週に戻る ↩</button>
+        <button id="today-week-btn" class="pill-btn today-return-btn hidden" title="今週に戻る" data-i18n="returnThisWeekLong" data-i18n-title="returnThisWeekTitle">今週に戻る ↩</button>
 
         <!-- Week Start Toggle (outside week-nav-bar enclosure) -->
-        <button id="week-start-toggle-btn" class="pill-btn week-start-btn" title="週の開始曜日を切り替え (日曜 / 月曜)">日曜始</button>
+        <button id="week-start-toggle-btn" class="pill-btn week-start-btn" title="週の開始曜日を切り替え (日曜 / 月曜)" data-i18n="weekStartSun" data-i18n-title="weekStartSunTitle">日曜始</button>
 
         <!-- View Mode Switcher -->
-        <div class="view-switcher" role="group" aria-label="表示モード切替">
-          <button id="btn-view-matrix" class="view-switch-btn active" title="週を横組み（曜日×地層マトリクス）で比較表示">
+        <div class="view-switcher" role="group" aria-label="表示モード切替" data-i18n-aria-label="viewSwitcherAria">
+          <button id="btn-view-matrix" class="view-switch-btn active" title="週を横組み（曜日×地層マトリクス）で比較表示" data-i18n-title="viewMatrixTitle">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2"/>
               <line x1="3" y1="9" x2="21" y2="9"/>
               <line x1="3" y1="15" x2="21" y2="15"/>
               <line x1="8" y1="3" x2="8" y2="21"/>
             </svg>
-            <span>週横組み</span>
+            <span data-i18n="viewMatrixLabel">週横組み</span>
           </button>
-          <button id="btn-view-columns" class="view-switch-btn" title="年別3列カラムで縦スクロール表示">
+          <button id="btn-view-columns" class="view-switch-btn" title="年別3列カラムで縦スクロール表示" data-i18n-title="viewColumnsTitle">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2"/>
               <line x1="9" y1="3" x2="9" y2="21"/>
               <line x1="15" y1="3" x2="15" y2="21"/>
             </svg>
-            <span>3列カラム</span>
+            <span data-i18n="viewColumnsLabel">3列カラム</span>
           </button>
         </div>
       </div>
@@ -77,25 +77,25 @@
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input type="text" id="search-input" class="search-input" placeholder="全地層を検索（予定名・場所など）..." autocomplete="off">
-          <button id="search-clear-btn" class="search-clear-btn hidden" title="クリア">&times;</button>
-          <span id="search-match-count" class="search-match-count hidden">0件</span>
+          <input type="text" id="search-input" class="search-input" placeholder="全地層を検索（予定名・場所など）..." data-i18n-placeholder="searchPlaceholderDashboard" autocomplete="off">
+          <button id="search-clear-btn" class="search-clear-btn hidden" title="クリア" data-i18n-title="clearSearch">&times;</button>
+          <span id="search-match-count" class="search-match-count hidden">0</span>
         </div>
 
         <!-- Calendar Selector Toggle -->
-        <button id="calendar-toggle-btn" class="action-btn" title="表示カレンダーを選択・管理">
+        <button id="calendar-toggle-btn" class="action-btn" title="表示カレンダーを選択・管理" data-i18n-title="calToggleTitle">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/>
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <span id="calendar-btn-label">カレンダー選択</span>
+          <span id="calendar-btn-label" data-i18n="calBtnLabel">カレンダー選択</span>
           <span id="calendar-badge-count" class="action-badge hidden">0</span>
         </button>
 
         <!-- Theme Switcher (Dark / Light) -->
-        <button id="theme-toggle-btn" class="icon-btn" title="ライトモードに切り替え" aria-label="テーマ切替">
+        <button id="theme-toggle-btn" class="icon-btn" title="ライトモードに切り替え" aria-label="テーマ切替" data-i18n-title="themeToggleLight" data-i18n-aria-label="themeToggleAria">
           <svg class="theme-icon sun-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="5"/>
             <line x1="12" y1="1" x2="12" y2="3"/>
@@ -113,14 +113,14 @@
         </button>
 
         <!-- Refresh -->
-        <button id="refresh-btn" class="icon-btn" title="カレンダーを更新" aria-label="更新">
+        <button id="refresh-btn" class="icon-btn" title="カレンダーを更新" aria-label="更新" data-i18n-title="refreshTitle" data-i18n-aria-label="refreshAria">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
           </svg>
         </button>
 
         <!-- Sign Out -->
-        <button id="signout-btn" class="icon-btn hidden" title="ログアウト" aria-label="ログアウト">
+        <button id="signout-btn" class="icon-btn hidden" title="ログアウト" aria-label="ログアウト" data-i18n-title="signoutTitle" data-i18n-aria-label="signoutAria">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
@@ -141,17 +141,17 @@
         <div class="calendar-panel-header">
           <div class="calendar-panel-title-group">
             <span class="panel-icon">📅</span>
-            <span class="panel-title">表示カレンダーの選択</span>
-            <span id="calendar-selected-summary" class="calendar-summary-tag">0件選択中</span>
+            <span class="panel-title" data-i18n="calPanelTitle">表示カレンダー選択</span>
+            <span id="calendar-selected-summary" class="calendar-summary-tag"></span>
           </div>
-          <button id="calendar-panel-close" class="panel-close-btn">&times;</button>
+          <button id="calendar-panel-close" class="panel-close-btn" title="閉じる" data-i18n-title="close">&times;</button>
         </div>
 
         <div class="calendar-actions-bar">
-          <button id="btn-cal-all" class="cal-action-btn">すべて選択</button>
-          <button id="btn-cal-primary" class="cal-action-btn">メインのみ</button>
-          <button id="btn-cal-holiday" class="cal-action-btn">祝日切替</button>
-          <button id="btn-cal-reload" class="cal-action-btn icon-only" title="カレンダー一覧を再取得">
+          <button id="btn-cal-all" class="cal-action-btn" data-i18n="calBtnAll">すべて選択</button>
+          <button id="btn-cal-primary" class="cal-action-btn" data-i18n="calBtnPrimary">メインのみ</button>
+          <button id="btn-cal-holiday" class="cal-action-btn" data-i18n="calBtnHoliday">祝日切替</button>
+          <button id="btn-cal-reload" class="cal-action-btn icon-only" title="カレンダー一覧を再取得" data-i18n-title="calBtnReloadTitle">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
             </svg>
@@ -160,7 +160,7 @@
 
         <div id="calendar-list-loading" class="calendar-list-loading hidden">
           <div class="mini-spinner"></div>
-          <span>カレンダーを取得中...</span>
+          <span data-i18n="calListLoading">カレンダーを取得中...</span>
         </div>
 
         <div id="calendar-list" class="calendar-list">
@@ -189,8 +189,8 @@
           </div>
         </div>
 
-        <h2 class="welcome-title">時間の地層を旅する（大画面パノラマ）</h2>
-        <p class="welcome-desc">
+        <h2 class="welcome-title" data-i18n="welcomeTitleDashboard">時間の地層を旅する（大画面パノラマ）</h2>
+        <p class="welcome-desc" data-i18n-html="welcomeDescDashboard">
           Googleカレンダーと連携して、<strong>「今週」</strong>と<strong>「1年前の同週」「2年前の同週」</strong>の予定を横並び3列の広大なパノラマで一覧比較できます。<br>
           過去の自分の軌跡と現在のスケジュールを横断して見渡しましょう。
         </p>
@@ -202,19 +202,19 @@
             <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
             <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
           </svg>
-          <span>Googleアカウントでログイン</span>
+          <span data-i18n="signinBtn">Googleアカウントでログイン</span>
         </button>
 
         <div class="auth-security-notice">
-          <span>🔒 読み取り専用権限（Calendar.Readonly）のみを使用します</span>
+          <span data-i18n="authSecurityNotice">🔒 読み取り専用権限（Calendar.Readonly）のみを使用します</span>
         </div>
 
         <!-- Google Cloud 設定用リダイレクトURI表示 (一般ユーザー向けには非表示) -->
         <div class="redirect-uri-box hidden">
-          <span class="redirect-uri-label">承認済みのリダイレクト URI (Google Cloud Consoleに登録):</span>
+          <span class="redirect-uri-label" data-i18n="redirectUriLabel">承認済みのリダイレクト URI:</span>
           <div class="redirect-uri-input-group">
             <input type="text" id="redirect-uri-input" readonly>
-            <button id="copy-uri-btn" class="copy-btn" title="URIをコピー">コピー</button>
+            <button id="copy-uri-btn" class="copy-btn" title="URIをコピー" data-i18n="copyBtn" data-i18n-title="copyUriTitle">コピー</button>
           </div>
         </div>
       </div>
@@ -225,7 +225,7 @@
       <!-- Loading Overlay -->
       <div id="loader" class="loader-overlay hidden">
         <div class="loader-spinner"></div>
-        <span class="loader-text">全地層（現在・1年前・2年前）を発掘中...</span>
+        <span class="loader-text" data-i18n="loaderDashboard">全地層（現在・1年前・2年前）を発掘中...</span>
       </div>
 
       <!-- View Mode A: Week Matrix View (週横組み: 曜日横軸 × 3地層縦軸) -->
@@ -235,7 +235,7 @@
             <!-- 曜日ヘッダー行 -->
             <div class="matrix-header-row">
               <div class="matrix-corner-cell">
-                <span class="matrix-corner-tag">地層 \ 曜日</span>
+                <span class="matrix-corner-tag" data-i18n="matrixCornerTag">地層 \ 曜日</span>
               </div>
               <div class="matrix-day-header" data-day="0">
                 <span class="day-name day-sun">日</span>
@@ -271,9 +271,9 @@
             <div class="matrix-strata-row layer-theme-present" id="matrix-row-present">
               <div class="matrix-strata-label-cell">
                 <span class="layer-pill">Layer 01</span>
-                <span class="matrix-strata-title">表層 (現在)</span>
+                <span class="matrix-strata-title" data-i18n="layerPresent">表層 (現在)</span>
                 <span id="matrix-date-present" class="matrix-strata-sub">-</span>
-                <span id="matrix-count-present" class="event-count-badge">0件</span>
+                <span id="matrix-count-present" class="event-count-badge">0</span>
               </div>
               <div class="matrix-strata-content-area">
                 <!-- 複数日にまたがる全日予定の帯トラック -->
@@ -295,9 +295,9 @@
             <div class="matrix-strata-row layer-theme-1yr" id="matrix-row-1yr">
               <div class="matrix-strata-label-cell">
                 <span class="layer-pill">Layer 02</span>
-                <span class="matrix-strata-title">中間層 (1年前)</span>
+                <span class="matrix-strata-title" data-i18n="layer1yr">中間層 (1年前)</span>
                 <span id="matrix-date-1yr" class="matrix-strata-sub">-</span>
-                <span id="matrix-count-1yr" class="event-count-badge">0件</span>
+                <span id="matrix-count-1yr" class="event-count-badge">0</span>
               </div>
               <div class="matrix-strata-content-area">
                 <!-- 複数日にまたがる全日予定の帯トラック -->
@@ -319,9 +319,9 @@
             <div class="matrix-strata-row layer-theme-2yr" id="matrix-row-2yr">
               <div class="matrix-strata-label-cell">
                 <span class="layer-pill">Layer 03</span>
-                <span class="matrix-strata-title">深層 (2年前)</span>
+                <span class="matrix-strata-title" data-i18n="layer2yr">深層 (2年前)</span>
                 <span id="matrix-date-2yr" class="matrix-strata-sub">-</span>
-                <span id="matrix-count-2yr" class="event-count-badge">0件</span>
+                <span id="matrix-count-2yr" class="event-count-badge">0</span>
               </div>
               <div class="matrix-strata-content-area">
                 <!-- 複数日にまたがる全日予定の帯トラック -->
@@ -350,11 +350,11 @@
             <header class="column-header">
               <div class="column-badge-row">
                 <span class="layer-pill">Layer 01</span>
-                <span class="column-depth-title">表層 (現在)</span>
+                <span class="column-depth-title" data-i18n="layerPresent">表層 (現在)</span>
               </div>
               <div class="column-range-row">
                 <span id="date-present" class="column-date-range">-</span>
-                <span id="count-present" class="event-count-badge">0件</span>
+                <span id="count-present" class="event-count-badge">0</span>
               </div>
             </header>
             <div class="column-body">
@@ -367,11 +367,11 @@
             <header class="column-header">
               <div class="column-badge-row">
                 <span class="layer-pill">Layer 02</span>
-                <span class="column-depth-title">中間層 (1年前)</span>
+                <span class="column-depth-title" data-i18n="layer1yr">中間層 (1年前)</span>
               </div>
               <div class="column-range-row">
                 <span id="date-1yr" class="column-date-range">-</span>
-                <span id="count-1yr" class="event-count-badge">0件</span>
+                <span id="count-1yr" class="event-count-badge">0</span>
               </div>
             </header>
             <div class="column-body">
@@ -384,11 +384,11 @@
             <header class="column-header">
               <div class="column-badge-row">
                 <span class="layer-pill">Layer 03</span>
-                <span class="column-depth-title">深層 (2年前)</span>
+                <span class="column-depth-title" data-i18n="layer2yr">深層 (2年前)</span>
               </div>
               <div class="column-range-row">
                 <span id="date-2yr" class="column-date-range">-</span>
-                <span id="count-2yr" class="event-count-badge">0件</span>
+                <span id="count-2yr" class="event-count-badge">0</span>
               </div>
             </header>
             <div class="column-body">
@@ -404,15 +404,15 @@
       <div class="footer-left">
         <span class="footer-status">Google Calendar API v3 Active</span>
         <span class="footer-divider">•</span>
-        <span id="footer-cal-count" class="footer-detail">0カレンダー選択中</span>
+        <span id="footer-cal-count" class="footer-detail"></span>
       </div>
       <div class="footer-right">
-        <a href="https://buymeacoffee.com/youichinakq" target="_blank" rel="noopener noreferrer" class="coffee-link" title="Buy Me a Coffee で応援する">
+        <a href="https://buymeacoffee.com/youichinakq" target="_blank" rel="noopener noreferrer" class="coffee-link" title="Buy Me a Coffee で応援する" data-i18n-title="coffeeTitle">
           <span class="coffee-icon">☕</span>
           <span class="coffee-text">Buy me a coffee</span>
         </a>
         <span class="footer-divider">•</span>
-        <span id="last-updated" class="last-updated">未同期</span>
+        <span id="last-updated" class="last-updated" data-i18n="notSynced">未同期</span>
       </div>
     </footer>
   </div>

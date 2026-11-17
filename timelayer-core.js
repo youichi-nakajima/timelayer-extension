@@ -242,9 +242,291 @@
   }
 
   // =========================================================================
+  // Internationalization (i18n)
+  // =========================================================================
+  const MESSAGES = Object.freeze({
+    ja: Object.freeze({
+      pageTitleSidepanel: 'TimeLayer - カレンダー地層ビュー',
+      pageTitleDashboard: 'TimeLayer - 大画面地層ダッシュボード',
+      sidepanelSubtitle: '時間の地層ビューア',
+      dashboardSubtitle: '過去と現在を地層のように重ねる大画面パノラマビュー',
+      calToggleTitle: 'カレンダーを選択・管理',
+      calToggleAria: 'カレンダー管理',
+      calBtnLabel: 'カレンダー選択',
+      searchToggleTitle: 'キーワードで予定を絞り込み',
+      searchToggleAria: '検索',
+      openFullpageTitle: '新しいタブで大画面ダッシュボードを開く',
+      openFullpageAria: '全画面表示',
+      themeToggleLight: 'ライトモードに切り替え',
+      themeToggleDark: 'ダークモードに切り替え',
+      themeToggleAria: 'テーマ切替',
+      refreshTitle: 'カレンダーを更新',
+      refreshAria: '更新',
+      signoutTitle: 'ログアウト',
+      signoutAria: 'ログアウト',
+      welcomeTitleSidepanel: '時間の地層を旅する',
+      welcomeDescSidepanel: 'Googleカレンダーと連携して、<strong>「今週」</strong>と<strong>「1年前の同週」「2年前の同週」</strong>の予定を縦に重ねて一覧できます。<br>過去の自分の行動やリズムを振り返り、今の過ごし方に新しい気づきを。',
+      welcomeTitleDashboard: '時間の地層を旅する（大画面パノラマ）',
+      welcomeDescDashboard: 'Googleカレンダーと連携して、<strong>「今週」</strong>と<strong>「1年前の同週」「2年前の同週」</strong>の予定を横並び3列の広大なパノラマで一覧比較できます。<br>過去の自分の軌跡と現在のスケジュールを横断して見渡しましょう。',
+      signinBtn: 'Googleアカウントでログイン',
+      authSecurityNotice: '🔒 読み取り専用権限（Calendar.Readonly）のみを使用します',
+      redirectUriLabel: '承認済みのリダイレクト URI:',
+      copyBtn: 'コピー',
+      copyUriTitle: 'URIをコピー',
+      copied: 'コピー完了!',
+      prevWeek: '前の週',
+      nextWeek: '次の週',
+      thisWeek: '今週',
+      weeksLater: '{n}週後',
+      weeksAgo: '{n}週前',
+      loading: '読み込み中...',
+      returnThisWeekShort: '今週 ↩',
+      returnThisWeekLong: '今週に戻る ↩',
+      returnThisWeekTitle: '今週に戻る',
+      weekStartSun: '日曜始',
+      weekStartMon: '月曜始',
+      weekStartSunTitle: '週の開始: 日曜（クリックで月曜始まりに切替）',
+      weekStartMonTitle: '週の開始: 月曜（クリックで日曜始まりに切替）',
+      viewSwitcherAria: '表示モード切替',
+      viewMatrixTitle: '週を横組み（曜日×地層マトリクス）で比較表示',
+      viewMatrixLabel: '週横組み',
+      viewColumnsTitle: '年別3列カラムで縦スクロール表示',
+      viewColumnsLabel: '3列カラム',
+      searchPlaceholderSidepanel: '予定タイトルや場所で絞り込み...',
+      searchPlaceholderDashboard: '全地層を検索（予定名・場所など）...',
+      clearSearch: 'クリア',
+      searchMatchedCount: '{n}件一致',
+      calPanelTitle: '表示カレンダー選択',
+      calSelectedSummary: '{selected}/{total}件 選択中',
+      footerCalCount: '{selected}カレンダー選択中',
+      close: '閉じる',
+      calBtnAll: 'すべて選択',
+      calBtnPrimary: 'メインのみ',
+      calBtnHoliday: '祝日切替',
+      calBtnReloadTitle: 'カレンダー一覧を再取得',
+      calListLoading: 'カレンダーを取得中...',
+      noCalendarsFound: '利用可能なカレンダーが見つかりません',
+      tagPrimary: 'メイン',
+      tagHoliday: '🎌 祝日',
+      loaderSidepanel: 'カレンダーの地層を発掘中...',
+      loaderDashboard: '全地層（現在・1年前・2年前）を発掘中...',
+      matrixCornerTag: '地層 \\ 曜日',
+      layerPresent: '表層 (現在)',
+      layer1yr: '中間層 (1年前)',
+      layer2yr: '深層 (2年前)',
+      toggleCollapse: '折りたたみ',
+      emptyLayerEvents: '選択されたカレンダーに予定はありません',
+      noEventsDay: '予定なし',
+      defaultHolidayName: '祝日',
+      untitledCalendar: '（名称未設定）',
+      untitledEvent: '(タイトルなし)',
+      allDay: '終日',
+      allDayMulti: '終日 ({days}日間)',
+      multiDaySpan: '{days}日間',
+      timeStartOnly: '{time}〜',
+      timeEndOnly: '〜{time}',
+      allDayCont: '終日（継続）',
+      syncedSidepanel: '同期: {time} ({count}カレンダー)',
+      syncedDashboard: '同期完了: {time}',
+      notSynced: '未同期',
+      coffeeTitle: 'Buy Me a Coffee で応援する',
+      coffeeTextSidepanel: '応援',
+      errMissingClientId: 'manifest.json にクライアントIDが設定されていません。',
+      errAuthCancelled: '認証がキャンセルされました',
+      errOAuth: 'OAuthエラー: {error}',
+      errOAuthState: 'OAuth state検証に失敗しました（CSRFの疑いがあります）',
+      errNoAccessToken: 'アクセストークンを取得できませんでした',
+      errAuthExpired: '認証セッションが切れました。再度ログインしてください。',
+      errFetchCalList: 'カレンダー一覧の取得に失敗しました: {msg}',
+      errFetchEvents: 'カレンダーの取得に失敗しました: {msg}',
+      errSignIn: 'ログインに失敗しました: {msg}',
+      errSignInFallback: 'クライアントIDや設定を確認してください'
+    }),
+    en: Object.freeze({
+      pageTitleSidepanel: 'TimeLayer - Calendar Strata Viewer',
+      pageTitleDashboard: 'TimeLayer - Panoramic Strata Dashboard',
+      sidepanelSubtitle: 'Calendar Strata Viewer',
+      dashboardSubtitle: 'Panoramic multi-layered view comparing past and present',
+      calToggleTitle: 'Select & manage calendars',
+      calToggleAria: 'Manage calendars',
+      calBtnLabel: 'Calendars',
+      searchToggleTitle: 'Filter events by keyword',
+      searchToggleAria: 'Search',
+      openFullpageTitle: 'Open Panoramic Dashboard in a new tab',
+      openFullpageAria: 'Full screen view',
+      themeToggleLight: 'Switch to Light Mode',
+      themeToggleDark: 'Switch to Dark Mode',
+      themeToggleAria: 'Toggle theme',
+      refreshTitle: 'Refresh calendars',
+      refreshAria: 'Refresh',
+      signoutTitle: 'Sign out',
+      signoutAria: 'Sign out',
+      welcomeTitleSidepanel: 'Journey Through Layers of Time',
+      welcomeDescSidepanel: 'Connect with Google Calendar to stack and compare your schedules from <strong>This Week</strong>, <strong>1 Year Ago</strong>, and <strong>2 Years Ago</strong>.<br>Reflect on your past rhythms and discover new insights for today.',
+      welcomeTitleDashboard: 'Journey Through Layers of Time (Panoramic View)',
+      welcomeDescDashboard: 'Connect with Google Calendar to compare schedules from <strong>This Week</strong>, <strong>1 Year Ago</strong>, and <strong>2 Years Ago</strong> across a wide panoramic view.<br>Explore your past footsteps alongside your current schedule.',
+      signinBtn: 'Sign in with Google',
+      authSecurityNotice: '🔒 Uses read-only permissions (Calendar.Readonly) only',
+      redirectUriLabel: 'Authorized redirect URI:',
+      copyBtn: 'Copy',
+      copyUriTitle: 'Copy URI',
+      copied: 'Copied!',
+      prevWeek: 'Previous week',
+      nextWeek: 'Next week',
+      thisWeek: 'This Week',
+      weeksLater: 'In {n}w',
+      weeksAgo: '{n}w ago',
+      loading: 'Loading...',
+      returnThisWeekShort: 'Today ↩',
+      returnThisWeekLong: 'This Week ↩',
+      returnThisWeekTitle: 'Return to this week',
+      weekStartSun: 'Sun Start',
+      weekStartMon: 'Mon Start',
+      weekStartSunTitle: 'Week starts on Sunday (Click to switch to Monday)',
+      weekStartMonTitle: 'Week starts on Monday (Click to switch to Sunday)',
+      viewSwitcherAria: 'Switch view mode',
+      viewMatrixTitle: 'Compare in Matrix View (Days × Strata)',
+      viewMatrixLabel: 'Matrix View',
+      viewColumnsTitle: 'Compare in 3-Column vertical scroll view',
+      viewColumnsLabel: '3 Columns',
+      searchPlaceholderSidepanel: 'Filter by event title or location...',
+      searchPlaceholderDashboard: 'Search all layers (title, location, etc.)...',
+      clearSearch: 'Clear',
+      searchMatchedCount: '{n} matched',
+      calPanelTitle: 'Select Calendars',
+      calSelectedSummary: '{selected}/{total} selected',
+      footerCalCount: '{selected} calendars selected',
+      close: 'Close',
+      calBtnAll: 'Select All',
+      calBtnPrimary: 'Primary Only',
+      calBtnHoliday: 'Toggle Holidays',
+      calBtnReloadTitle: 'Reload calendar list',
+      calListLoading: 'Loading calendars...',
+      noCalendarsFound: 'No calendars found',
+      tagPrimary: 'Primary',
+      tagHoliday: '🎌 Holiday',
+      loaderSidepanel: 'Excavating calendar strata...',
+      loaderDashboard: 'Excavating all strata (Present, 1Y Ago, 2Y Ago)...',
+      matrixCornerTag: 'Strata \\ Day',
+      layerPresent: 'Surface (Present)',
+      layer1yr: 'Middle (1 Year Ago)',
+      layer2yr: 'Deep (2 Years Ago)',
+      toggleCollapse: 'Toggle collapse',
+      emptyLayerEvents: 'No events in selected calendars',
+      noEventsDay: 'No events',
+      defaultHolidayName: 'Holiday',
+      untitledCalendar: '(Untitled)',
+      untitledEvent: '(No title)',
+      allDay: 'All day',
+      allDayMulti: 'All day ({days}d)',
+      multiDaySpan: '{days}d',
+      timeStartOnly: '{time}–',
+      timeEndOnly: '–{time}',
+      allDayCont: 'All day (cont.)',
+      syncedSidepanel: 'Synced: {time} ({count} cal)',
+      syncedDashboard: 'Synced: {time}',
+      notSynced: 'Not synced',
+      coffeeTitle: 'Support on Buy Me a Coffee',
+      coffeeTextSidepanel: 'Support',
+      errMissingClientId: 'Client ID is not configured in manifest.json.',
+      errAuthCancelled: 'Authentication was cancelled.',
+      errOAuth: 'OAuth error: {error}',
+      errOAuthState: 'OAuth state verification failed (possible CSRF).',
+      errNoAccessToken: 'Failed to obtain access token.',
+      errAuthExpired: 'Authentication session expired. Please sign in again.',
+      errFetchCalList: 'Failed to load calendar list: {msg}',
+      errFetchEvents: 'Failed to load calendar events: {msg}',
+      errSignIn: 'Sign-in failed: {msg}',
+      errSignInFallback: 'Please check your Client ID and configuration.'
+    })
+  });
+
+  function detectLang() {
+    if (typeof window !== 'undefined' && window.location?.search) {
+      const param = new URLSearchParams(window.location.search).get('lang');
+      if (param) {
+        const normalized = param.trim().toLowerCase();
+        if (normalized === 'ja' || normalized === 'en') {
+          return normalized;
+        }
+      }
+    }
+    const uiLang = (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage?.()) ||
+                   (typeof navigator !== 'undefined' && navigator.language) ||
+                   'en';
+    return String(uiLang).toLowerCase().startsWith('ja') ? 'ja' : 'en';
+  }
+
+  let currentLang = detectLang();
+
+  function getLang() {
+    return currentLang;
+  }
+
+  function setLang(lang) {
+    currentLang = lang === 'ja' ? 'ja' : 'en';
+    return currentLang;
+  }
+
+  function t(key, params) {
+    const dict = MESSAGES[currentLang] || MESSAGES.en;
+    let str = Object.prototype.hasOwnProperty.call(dict, key)
+      ? dict[key]
+      : (Object.prototype.hasOwnProperty.call(MESSAGES.en, key) ? MESSAGES.en[key] : key);
+    if (params && typeof str === 'string') {
+      for (const [k, v] of Object.entries(params)) {
+        str = str.replaceAll(`{${k}}`, String(v));
+      }
+    }
+    return str;
+  }
+
+  function formatEventCount(n) {
+    if (currentLang === 'ja') {
+      return `${n}件`;
+    }
+    return `${n} ${n === 1 ? 'event' : 'events'}`;
+  }
+
+  function applyI18nToDOM(root = document) {
+    if (typeof document !== 'undefined' && document.documentElement) {
+      document.documentElement.lang = currentLang;
+    }
+    if (!root) return;
+
+    root.querySelectorAll('[data-i18n]').forEach((el) => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    root.querySelectorAll('[data-i18n-html]').forEach((el) => {
+      el.innerHTML = t(el.dataset.i18nHtml);
+    });
+    root.querySelectorAll('[data-i18n-title]').forEach((el) => {
+      el.title = t(el.dataset.i18nTitle);
+    });
+    root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+      el.placeholder = t(el.dataset.i18nPlaceholder);
+    });
+    root.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+      el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
+    });
+  }
+
+  // =========================================================================
   // Date & Formatting Helpers
   // =========================================================================
-  const DAY_NAMES = Object.freeze(['日', '月', '火', '水', '木', '金', '土']);
+  const DAY_NAMES_MAP = Object.freeze({
+    ja: Object.freeze(['日', '月', '火', '水', '木', '金', '土']),
+    en: Object.freeze(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+  });
+  const MONTH_NAMES_SHORT = Object.freeze([
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ]);
+
+  function getDayName(dayIndex) {
+    const names = DAY_NAMES_MAP[currentLang] || DAY_NAMES_MAP.en;
+    return names[dayIndex] || '';
+  }
 
   function formatDateOnly(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -293,15 +575,32 @@
   function formatDateShort(date) {
     const m = date.getMonth() + 1;
     const d = date.getDate();
-    const day = DAY_NAMES[date.getDay()];
-    return `${m}/${d}(${day})`;
+    const day = getDayName(date.getDay());
+    if (currentLang === 'ja') {
+      return `${m}/${d}(${day})`;
+    }
+    return `${MONTH_NAMES_SHORT[date.getMonth()]} ${d} (${day})`;
   }
 
   function formatRangeText(start, end, includeYear = true) {
     const y = start.getFullYear();
-    const startStr = `${start.getMonth() + 1}/${start.getDate()}(${DAY_NAMES[start.getDay()]})`;
-    const endStr = `${end.getMonth() + 1}/${end.getDate()}(${DAY_NAMES[end.getDay()]})`;
-    return includeYear ? `${y}年 ${startStr} 〜 ${endStr}` : `${startStr} 〜 ${endStr}`;
+    if (currentLang === 'ja') {
+      const startStr = `${start.getMonth() + 1}/${start.getDate()}(${getDayName(start.getDay())})`;
+      const endStr = `${end.getMonth() + 1}/${end.getDate()}(${getDayName(end.getDay())})`;
+      return includeYear ? `${y}年 ${startStr} 〜 ${endStr}` : `${startStr} 〜 ${endStr}`;
+    }
+    const startStr = `${MONTH_NAMES_SHORT[start.getMonth()]} ${start.getDate()} (${getDayName(start.getDay())})`;
+    const endStr = `${MONTH_NAMES_SHORT[end.getMonth()]} ${end.getDate()} (${getDayName(end.getDay())})`;
+    return includeYear ? `${startStr} – ${endStr}, ${y}` : `${startStr} – ${endStr}`;
+  }
+
+  function formatMatrixLayerDate(range) {
+    if (currentLang === 'ja') {
+      return `${range.year}年 (${range.start.getMonth() + 1}/${range.start.getDate()}〜${range.end.getMonth() + 1}/${range.end.getDate()})`;
+    }
+    const startStr = `${MONTH_NAMES_SHORT[range.start.getMonth()]} ${range.start.getDate()}`;
+    const endStr = `${MONTH_NAMES_SHORT[range.end.getMonth()]} ${range.end.getDate()}`;
+    return `${range.year} (${startStr} – ${endStr})`;
   }
 
   function formatTime(dateObj) {
@@ -379,7 +678,7 @@
     ];
 
     if (!clientId || clientId.includes('YOUR_GOOGLE_CLIENT_ID')) {
-      throw new Error('manifest.json にクライアントIDが設定されていません。');
+      throw new Error(t('errMissingClientId'));
     }
 
     // CSRF対策のランダムstate値を生成
@@ -403,7 +702,7 @@
           return reject(new Error(chrome.runtime.lastError.message));
         }
         if (!responseUrl) {
-          return reject(new Error('認証がキャンセルされました'));
+          return reject(new Error(t('errAuthCancelled')));
         }
 
         try {
@@ -414,13 +713,13 @@
           const returnState = hashParams.get('state');
 
           if (error) {
-            return reject(new Error(`OAuthエラー: ${error}`));
+            return reject(new Error(t('errOAuth', { error })));
           }
           if (returnState !== state) {
-            return reject(new Error('OAuth state検証に失敗しました（CSRFの疑いがあります）'));
+            return reject(new Error(t('errOAuthState')));
           }
           if (!accessToken) {
-            return reject(new Error('アクセストークンを取得できませんでした'));
+            return reject(new Error(t('errNoAccessToken')));
           }
 
           const expiresIn = hashParams.get('expires_in');
@@ -488,7 +787,7 @@
 
     const parsed = allItems.map(item => ({
       id: item.id,
-      summary: item.summary || '（名称未設定）',
+      summary: item.summary || t('untitledCalendar'),
       description: item.description || '',
       backgroundColor: item.backgroundColor || '#6366f1',
       foregroundColor: item.foregroundColor || '#ffffff',
@@ -497,13 +796,13 @@
       selectedInGoogle: Boolean(item.selected)
     }));
 
-    // ソート順: プライマリを先頭に、次に祝日、その後に通常カレンダーを五十音順
+    // ソート順: プライマリを先頭に、次に祝日、その後に通常カレンダーをロケール順
     parsed.sort((a, b) => {
       if (a.primary) return -1;
       if (b.primary) return 1;
       if (a.isHoliday) return -1;
       if (b.isHoliday) return 1;
-      return a.summary.localeCompare(b.summary, 'ja');
+      return a.summary.localeCompare(b.summary, currentLang);
     });
 
     return parsed;
@@ -609,7 +908,7 @@
       if (aStart !== bStart) return aStart - bStart;
       if (a.start?.date && !b.start?.date) return -1;
       if (!a.start?.date && b.start?.date) return 1;
-      return (a.summary || '').localeCompare(b.summary || '', 'ja');
+      return (a.summary || '').localeCompare(b.summary || '', currentLang);
     });
 
     return allEvents;
@@ -631,7 +930,13 @@
 
   window.TimeLayerCore = Object.freeze({
     TOKEN_KEY,
-    DAY_NAMES,
+    MESSAGES,
+    getLang,
+    setLang,
+    t,
+    formatEventCount,
+    applyI18nToDOM,
+    getDayName,
     getStoredToken,
     saveStoredToken,
     clearStoredToken,
@@ -646,6 +951,7 @@
     getWeekRange,
     formatDateShort,
     formatRangeText,
+    formatMatrixLayerDate,
     formatTime,
     escapeHtml,
     resolveTheme,

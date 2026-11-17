@@ -16,7 +16,7 @@ chrome.runtime.onInstalled.addListener(() => {
   // 2. 右クリックメニューに「TimeLayer 大画面ダッシュボードを開く」を登録
   chrome.contextMenus.create({
     id: 'timelayer-open-dashboard',
-    title: '🪐 TimeLayer 大画面ダッシュボードを開く',
+    title: chrome.i18n.getMessage('contextMenuOpenDashboard') || '🪐 Open TimeLayer Panoramic Dashboard',
     contexts: ['action', 'page']
   });
 
@@ -33,7 +33,10 @@ chrome.contextMenus.onClicked.addListener((info) => {
 // コンテンツスクリプトや拡張機能内からのメッセージハンドラー
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === 'openDashboard') {
-    chrome.tabs.create({ url: chrome.runtime.getURL('dashboard.html') });
+    const url = message.lang
+      ? chrome.runtime.getURL(`dashboard.html?lang=${encodeURIComponent(message.lang)}`)
+      : chrome.runtime.getURL('dashboard.html');
+    chrome.tabs.create({ url });
   }
 });
 

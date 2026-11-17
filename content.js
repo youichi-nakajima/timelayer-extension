@@ -12,10 +12,33 @@
     return;
   }
 
+  const langParam = new URLSearchParams(window.location.search).get('tl_lang');
+  const normalizedLangParam = langParam ? langParam.trim().toLowerCase() : null;
+  const overrideLang = (normalizedLangParam === 'ja' || normalizedLangParam === 'en') ? normalizedLangParam : null;
+  const uiLang = overrideLang ||
+    (typeof chrome !== 'undefined' && chrome.i18n?.getUILanguage?.()) ||
+    navigator.language ||
+    'en';
+  const isJa = String(uiLang).toLowerCase().startsWith('ja');
+
+  const TEXT = isJa ? {
+    launcherTitle: 'TimeLayer 地層ビューを開く（過去と現在の予定を重ねて比較）',
+    launcherBadge: '地層',
+    drawerTitle: 'TimeLayer 地層ビュー',
+    openDashboardTitle: '新しいタブで大画面パノラマダッシュボードを開く',
+    closeDrawerTitle: '閉じる (Esc)'
+  } : {
+    launcherTitle: 'Open TimeLayer Strata View (Compare past and present schedules)',
+    launcherBadge: 'Strata',
+    drawerTitle: 'TimeLayer Strata View',
+    openDashboardTitle: 'Open Panoramic Dashboard in a new tab',
+    closeDrawerTitle: 'Close (Esc)'
+  };
+
   // 1. フローティング・ランチャーボタンの作成
   const launcherBtn = document.createElement('button');
   launcherBtn.id = 'timelayer-launcher-btn';
-  launcherBtn.title = 'TimeLayer 地層ビューを開く（過去と現在の予定を重ねて比較）';
+  launcherBtn.title = TEXT.launcherTitle;
   launcherBtn.innerHTML = `
     <div class="timelayer-launcher-bars">
       <span class="timelayer-bar timelayer-bar-1"></span>
@@ -23,7 +46,7 @@
       <span class="timelayer-bar timelayer-bar-3"></span>
     </div>
     <span class="timelayer-launcher-text">TimeLayer</span>
-    <span class="timelayer-launcher-badge">地層</span>
+    <span class="timelayer-launcher-badge">${TEXT.launcherBadge}</span>
   `;
 
   // 2. バックドロップ（半透明オーバーレイ）
@@ -44,17 +67,17 @@
         <line x1="3" y1="12" x2="17" y2="12"/>
         <line x1="3" y1="18" x2="13" y2="18"/>
       </svg>
-      <span>TimeLayer 地層ビュー</span>
+      <span>${TEXT.drawerTitle}</span>
     </div>
     <div class="timelayer-drawer-actions">
-      <button id="timelayer-open-dashboard-btn" class="timelayer-tool-btn" title="新しいタブで大画面パノラマダッシュボードを開く">
+      <button id="timelayer-open-dashboard-btn" class="timelayer-tool-btn" title="${TEXT.openDashboardTitle}">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
           <polyline points="15 3 21 3 21 9"/>
           <line x1="10" y1="14" x2="21" y2="3"/>
         </svg>
       </button>
-      <button id="timelayer-close-drawer-btn" class="timelayer-tool-btn" title="閉じる (Esc)">
+      <button id="timelayer-close-drawer-btn" class="timelayer-tool-btn" title="${TEXT.closeDrawerTitle}">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"/>
           <line x1="6" y1="6" x2="18" y2="18"/>
@@ -66,7 +89,10 @@
   // ドロワー内 iframe
   const iframe = document.createElement('iframe');
   iframe.className = 'timelayer-drawer-frame';
-  iframe.src = chrome.runtime.getURL('sidepanel.html?embedded=true');
+  const iframePath = overrideLang
+    ? `sidepanel.html?embedded=true&lang=${encodeURIComponent(overrideLang)}`
+    : 'sidepanel.html?embedded=true';
+  iframe.src = chrome.runtime.getURL(iframePath);
   iframe.allow = 'clipboard-write';
 
   drawer.appendChild(toolbar);
@@ -111,7 +137,7 @@
 
   const openDashboardBtn = toolbar.querySelector('#timelayer-open-dashboard-btn');
   openDashboardBtn.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'openDashboard' });
+    chrome.runtime.sendMessage({ action: 'openDashboard', lang: overrideLang || undefined });
     closeDrawer();
   });
 
