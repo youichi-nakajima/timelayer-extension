@@ -959,6 +959,49 @@ body {
   background: var(--bg-primary);
 }
 
+/* 各地層内の7曜日日付ヘッダー行 */
+.matrix-layer-dates-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(140px, 1fr));
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+[data-theme="light"] .matrix-layer-dates-row {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.matrix-cell-date-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-right: 1px solid var(--border-subtle);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.matrix-cell-date-header:last-child {
+  border-right: none;
+}
+
+.matrix-cell-date-header.is-today {
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.matrix-cell-date-text.day-sun {
+  color: #f87171;
+}
+
+.matrix-cell-date-text.day-sat {
+  color: #60a5fa;
+}
+
+.matrix-cell-date-header.is-today .matrix-cell-date-text {
+  color: var(--l1-light);
+}
+
 /* 複数日にまたがる全日予定・終日予定の帯トラック (隙間なく行圧縮) */
 .matrix-multi-day-track {
   display: grid;

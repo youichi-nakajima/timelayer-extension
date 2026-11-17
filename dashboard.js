@@ -408,11 +408,6 @@
 
     for (let day = 0; day < 7; day++) {
       const d = new Date(rangePresent.start.getFullYear(), rangePresent.start.getMonth(), rangePresent.start.getDate() + day);
-      const subEl = document.getElementById(`header-date-${day}`);
-      if (subEl) {
-        subEl.textContent = `${d.getMonth() + 1}/${d.getDate()}`;
-      }
-
       const headerCol = document.querySelector(`.matrix-day-header[data-day="${day}"]`);
       if (headerCol) {
         const dayOfWeek = d.getDay();
@@ -455,6 +450,26 @@
       const d = new Date(weekStartDate.getFullYear(), weekStartDate.getMonth(), weekStartDate.getDate() + i);
       return TimeLayerCore.formatDateOnly(d);
     });
+
+    const datesRow = document.getElementById(`matrix-dates-${layerKey}`);
+    if (datesRow) {
+      datesRow.innerHTML = '';
+      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        const d = new Date(weekStartDate.getFullYear(), weekStartDate.getMonth(), weekStartDate.getDate() + dayIndex);
+        const dateKey = weekDays[dayIndex];
+        const isToday = dateKey === todayKey;
+        const dow = d.getDay();
+        const dowClass = dow === 0 ? 'day-sun' : (dow === 6 ? 'day-sat' : '');
+
+        const dateCell = document.createElement('div');
+        dateCell.className = `matrix-cell-date-header${isToday ? ' is-today' : ''}`;
+        dateCell.innerHTML = `
+          <span class="matrix-cell-date-text ${dowClass}">${TimeLayerCore.escapeHtml(TimeLayerCore.formatDateShort(d))}</span>
+          ${isToday ? '<span class="today-indicator">TODAY</span>' : ''}
+        `;
+        datesRow.appendChild(dateCell);
+      }
+    }
 
     const weekStartStr = weekDays[0];
     const weekEndStr = weekDays[6];
