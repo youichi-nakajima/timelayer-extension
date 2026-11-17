@@ -70,6 +70,23 @@
       font-weight: 600;
     }
 
+    .lang-switch-link {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .lang-switch-link:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+    }
+
     .scene-selector {
       display: flex;
       background: rgba(0, 0, 0, 0.35);
@@ -303,6 +320,16 @@
 
     .scene-container.active {
       display: flex;
+    }
+
+    /* Keep Matrix View fit cleanly inside 1280x800 canvas with per-layer date headers */
+    #scene-1 .matrix-strata-row {
+      min-height: 180px;
+    }
+
+    #scene-1 .matrix-day-cell {
+      min-height: 138px;
+      padding: 6px 7px;
     }
 
     /* Scene 3: Side Panel in Browser Mock */
@@ -715,6 +742,7 @@
         TimeLayer
       </span>
       <span class="studio-badge">1280 × 800 キャプチャスタジオ</span>
+      <a href="preview-screenshots-en.html" class="lang-switch-link" title="English Screenshot Studio">🇺🇸 English</a>
     </div>
 
     <!-- Scene Selector Tabs -->
@@ -849,13 +877,13 @@
                   <!-- Header Row -->
                   <div class="matrix-header-row">
                     <div class="matrix-corner-cell"><span class="matrix-corner-tag">地層 \ 曜日</span></div>
-                    <div class="matrix-day-header"><span class="day-name day-sun">日</span><span class="day-sub">10/25</span></div>
-                    <div class="matrix-day-header"><span class="day-name">月</span><span class="day-sub">10/26</span></div>
-                    <div class="matrix-day-header"><span class="day-name">火</span><span class="day-sub">10/27</span></div>
-                    <div class="matrix-day-header"><span class="day-name">水</span><span class="day-sub">10/28</span></div>
-                    <div class="matrix-day-header"><span class="day-name">木</span><span class="day-sub">10/29</span></div>
-                    <div class="matrix-day-header"><span class="day-name">金</span><span class="day-sub">10/30</span></div>
-                    <div class="matrix-day-header"><span class="day-name day-sat">土</span><span class="day-sub">10/31</span></div>
+                    <div class="matrix-day-header"><span class="day-name day-sun">日</span></div>
+                    <div class="matrix-day-header"><span class="day-name">月</span></div>
+                    <div class="matrix-day-header is-today"><span class="day-name">火</span></div>
+                    <div class="matrix-day-header"><span class="day-name">水</span></div>
+                    <div class="matrix-day-header"><span class="day-name">木</span></div>
+                    <div class="matrix-day-header"><span class="day-name">金</span></div>
+                    <div class="matrix-day-header"><span class="day-name day-sat">土</span></div>
                   </div>
 
                   <!-- Layer 1: Present (Emerald) -->
@@ -863,10 +891,19 @@
                     <div class="matrix-strata-label-cell">
                       <span class="layer-pill">Layer 01</span>
                       <span class="matrix-strata-title">表層 (現在)</span>
-                      <span class="matrix-strata-sub">2026年</span>
+                      <span class="matrix-strata-sub">2026年 (10/25〜10/31)</span>
                       <span class="event-count-badge">8件</span>
                     </div>
                     <div class="matrix-strata-content-area">
+                      <div class="matrix-layer-dates-row">
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text day-sun">10/25(日)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/26(月)</span></div>
+                        <div class="matrix-cell-date-header is-today"><span class="matrix-cell-date-text">10/27(火)</span><span class="today-indicator">TODAY</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/28(水)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/29(木)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/30(金)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text day-sat">10/31(土)</span></div>
+                      </div>
                       <div class="matrix-single-days-row">
                         <div class="matrix-day-cell"></div>
                         <div class="matrix-day-cell">
@@ -953,10 +990,19 @@
                     <div class="matrix-strata-label-cell">
                       <span class="layer-pill">Layer 02</span>
                       <span class="matrix-strata-title">中間層 (1年前)</span>
-                      <span class="matrix-strata-sub">2025年</span>
+                      <span class="matrix-strata-sub">2025年 (10/26〜11/1)</span>
                       <span class="event-count-badge">6件</span>
                     </div>
                     <div class="matrix-strata-content-area">
+                      <div class="matrix-layer-dates-row">
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text day-sun">10/26(日)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/27(月)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/28(火)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/29(水)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/30(木)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/31(金)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text day-sat">11/1(土)</span></div>
+                      </div>
                       <div class="matrix-single-days-row">
                         <div class="matrix-day-cell"></div>
                         <div class="matrix-day-cell">
@@ -1021,10 +1067,19 @@
                     <div class="matrix-strata-label-cell">
                       <span class="layer-pill">Layer 03</span>
                       <span class="matrix-strata-title">深層 (2年前)</span>
-                      <span class="matrix-strata-sub">2024年</span>
+                      <span class="matrix-strata-sub">2024年 (10/27〜11/2)</span>
                       <span class="event-count-badge">5件</span>
                     </div>
                     <div class="matrix-strata-content-area">
+                      <div class="matrix-layer-dates-row">
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text day-sun">10/27(日)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/28(月)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/29(火)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/30(水)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">10/31(木)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text">11/1(金)</span></div>
+                        <div class="matrix-cell-date-header"><span class="matrix-cell-date-text day-sat">11/2(土)</span></div>
+                      </div>
                       <div class="matrix-single-days-row">
                         <div class="matrix-day-cell"></div>
                         <div class="matrix-day-cell">
