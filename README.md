@@ -1,7 +1,7 @@
 # TimeLayer - カレンダー地層ビュー (Calendar Strata Viewer)
 
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/intro/)
-[![Version](https://img.shields.io/badge/version-1.3.0-10b981.svg)](manifest.json)
+[![Version](https://img.shields.io/badge/version-1.4.0-10b981.svg)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-☕-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/youichinakq)
 
@@ -56,8 +56,9 @@
 - **レート制限 & バックオフ制御**: Google Calendar API のリクエスト制限（429 / 403 Rate Limit）に備えた最大3回の指数バックオフ（Exponential Backoff）および同時接続数制限キューを実装。
 - **スマートキャッシュ**: 静的な過去の予定は長期間、現在の予定は短期間のTTLキャッシュを効かせることで、高速な表示とAPI消費量の最小化を両立。
 
-### 5. モダンデザイン
-- **ダークモード / ライトモード**: システム設定に連動するほか、ヘッダーのボタンからいつでもワンクリックで切り替え可能。
+### 5. モダンデザイン & 多言語対応
+- **ダークモード / ライトモード**: システム設定（`prefers-color-scheme`）に自動連動するほか、ヘッダーのボタンからいつでもワンクリックで切り替え可能。
+- **日本語 / 英語 UI 自動対応**: ブラウザの表示言語（`chrome.i18n` / `_locales`）に応じて、拡張機能名・全ビュー・日付表記・通知文言を日本語/英語へ自動で切り替えます（URL クエリ `?lang=en` / `?lang=ja` による確認にも対応）。
 - **洗練されたタイポグラフィ**: OSネイティブの高品質システムフォント（San Francisco / Segoe UI / Hiragino Sans / Meiryo 等）を採用し、追加のフォント読み込みやライセンス管理を一切不要としながら、情報の視認性と美しさを両立。
 
 ---
@@ -100,6 +101,7 @@ git clone https://github.com/youichi-nakajima/timelayer-extension.git
 ```
 timelayer-extension/
 ├── manifest.json              # 拡張機能マニフェスト (Manifest V3)
+├── _locales/                  # 多言語リソース (ja / en)
 ├── background.js              # バックグラウンドサービスワーカー (サイドパネル挙動・コンテキストメニュー)
 ├── timelayer-core.js          # 共通コアロジック (認証・APIリクエスト制限・キャッシュ・エラーハンドリング)
 ├── sidepanel.html / .css / .js # Chrome サイドパネル用ファイル群

@@ -2,7 +2,7 @@
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Available-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/<extension-id>)
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/intro/)
-[![Version](https://img.shields.io/badge/version-1.3.0-10b981.svg)](manifest.json)
+[![Version](https://img.shields.io/badge/version-1.4.0-10b981.svg)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-☕-FFDD00?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/youichinakq)
 
@@ -68,6 +68,7 @@
 - **複数カレンダー切り替え**: 業務・プライベート・祝日・共有カレンダーなどを自由に選択可能。
 - **全地層インクリメンタル検索**: キーワード入力で、現在・1年前・2年前のすべての予定を瞬時に横断検索・ハイライト。
 - **ダークモード / ライトモード**: OSのシステム設定に自動連動するほか、ヘッダーのボタンからいつでも手動切り替え可能。
+- **日本語 / 英語 UI 自動対応**: ブラウザの言語設定に合わせて日本語・英語の表示（日時表記やエラー通知を含む）を自動で切り替えます。
 
 ---
 
