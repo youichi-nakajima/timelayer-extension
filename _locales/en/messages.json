@@ -3,7 +3,7 @@
     "message": "TimeLayer - Calendar Strata Viewer"
   },
   "extDescription": {
-    "message": "Overlay and compare your Google Calendar schedules across this week, 1 year ago, and 2 years ago in a Side Panel, Panoramic Dashboard, or directly inside Google Calendar."
+    "message": "Overlay and compare Google Calendar events across this week, 1 year ago, and 2 years ago in a Side Panel or Panoramic Dashboard."
   },
   "actionTitle": {
     "message": "Open TimeLayer"
