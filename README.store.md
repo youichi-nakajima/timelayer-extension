@@ -1,6 +1,6 @@
 # TimeLayer - カレンダー地層ビュー (Calendar Strata Viewer)
 
-[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Available-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/<extension-id>)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-Available-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/aemndojpgknmcdamjoaocgkkiecipgfp)
 [![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/intro/)
 [![Version](https://img.shields.io/badge/version-1.4.0-10b981.svg)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -23,7 +23,7 @@
 ## 🚀 インストール & はじめ方 (Quick Start)
 
 ### 1. ストアからインストール
-[Chrome ウェブストア](https://chromewebstore.google.com/detail/<extension-id>) から **「Chrome に追加」** をクリックしてインストールします。
+[Chrome ウェブストア](https://chromewebstore.google.com/detail/aemndojpgknmcdamjoaocgkkiecipgfp) から **「Chrome に追加」** をクリックしてインストールします。
 
 > [!TIP]
 > インストール後、ブラウザ右上ツールバーの拡張機能パズルアイコンから **TimeLayer をピン留め** しておくと、ワンクリックでいつでもサイドパネルを呼び出せて便利です。

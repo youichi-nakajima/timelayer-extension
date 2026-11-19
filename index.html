@@ -1,203 +1,562 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google-site-verification" content="google0818595279afcbb2">
   <title>TimeLayer - Calendar Strata Viewer for Google Calendar</title>
+  <meta name="description" content="Overlay and compare Google Calendar events across This Week, 1 Year Ago, and 2 Years Ago like geological strata in a Chrome Side Panel, Panoramic Dashboard, or directly inside Google Calendar.">
+  <meta property="og:title" content="TimeLayer - Calendar Strata Viewer for Google Calendar">
+  <meta property="og:description" content="Layer your Google Calendar across This Week, 1 Year Ago, and 2 Years Ago. Available free on the Chrome Web Store.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://timelayer.aufheben.studio/">
+  <meta property="og:image" content="https://timelayer.aufheben.studio/screenshot/timelayer-01-matrix-view-en.png">
   <link rel="icon" href="icons/icon48.png" type="image/png">
+  <script>
+    (function () {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var q = (params.get('lang') || '').toLowerCase();
+        var lang = (q === 'ja' || q === 'en')
+          ? q
+          : (((navigator.language || '').toLowerCase().indexOf('ja') === 0) ? 'ja' : 'en');
+        document.documentElement.setAttribute('data-lang', lang);
+        document.documentElement.setAttribute('lang', lang);
+      } catch (e) {}
+    })();
+  </script>
   <style>
     :root {
       --bg-primary: #090d16;
+      --bg-surface: #0f172a;
       --bg-card: #131c2e;
       --bg-card-alt: #1a263d;
       --text-main: #f8fafc;
+      --text-secondary: #cbd5e1;
       --text-muted: #94a3b8;
       --accent-emerald: #10b981;
+      --accent-emerald-bright: #34d399;
       --accent-amber: #f59e0b;
+      --accent-amber-bright: #fbbf24;
       --accent-purple: #8b5cf6;
+      --accent-purple-bright: #a78bfa;
       --border-color: #23314a;
+      --border-strong: #334155;
     }
+
+    /* Instant bilingual visibility controlled by <html data-lang="ja|en"> */
+    html[data-lang="en"] .lang-ja { display: none !important; }
+    html[data-lang="ja"] .lang-en { display: none !important; }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: var(--bg-primary);
-      color: var(--text-main);
-      line-height: 1.6;
+
+    html {
+      scroll-behavior: smooth;
     }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-primary);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 85% 20%, rgba(139, 92, 246, 0.08), transparent);
+      color: var(--text-main);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Navigation */
+    .navbar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
     .navbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 40px;
-      max-width: 1200px;
+      padding: 14px 32px;
+      max-width: 1180px;
       margin: 0 auto;
-      border-bottom: 1px solid var(--border-color);
+      gap: 16px;
     }
+
     .nav-brand {
       display: flex;
       align-items: center;
       gap: 12px;
       text-decoration: none;
       color: #fff;
-      font-weight: 700;
-      font-size: 20px;
+      font-weight: 800;
+      font-size: 19px;
+      letter-spacing: -0.02em;
+      flex-shrink: 0;
     }
+
     .nav-brand img {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 8px;
     }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .nav-links {
       display: flex;
-      gap: 24px;
+      gap: 22px;
       align-items: center;
     }
+
     .nav-links a {
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 15px;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover, .nav-links a.active {
-      color: var(--accent-emerald);
-    }
-    .hero {
-      text-align: center;
-      padding: 80px 20px 60px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .hero-badge {
-      display: inline-block;
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--accent-emerald);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 6px 16px;
-      border-radius: 20px;
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 24px;
+      transition: color 0.2s;
+      white-space: nowrap;
     }
-    .hero h1 {
-      font-size: 44px;
-      line-height: 1.2;
-      font-weight: 800;
-      letter-spacing: -1px;
-      margin-bottom: 20px;
+
+    .nav-links a:hover,
+    .nav-links a.privacy-link {
+      color: var(--accent-emerald-bright);
     }
-    .hero p {
-      font-size: 18px;
+
+    .lang-switcher {
+      display: inline-flex;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
       color: var(--text-muted);
-      max-width: 720px;
-      margin: 0 auto 36px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.2s;
+      font-family: inherit;
     }
-    .hero-actions {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
+
+    .lang-btn:hover {
+      color: var(--text-main);
     }
-    .btn {
+
+    .lang-btn.active {
+      background: var(--accent-emerald);
+      color: #062118;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 68px 20px 44px;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 12px 28px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-emerald-bright);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 22px;
     }
-    .btn-primary {
-      background: var(--accent-emerald);
-      color: #090d16;
+
+    .hero-badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-emerald-bright);
+      box-shadow: 0 0 8px var(--accent-emerald);
     }
-    .btn-primary:hover {
-      background: #059669;
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.18;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .btn-secondary {
+
+    .hero-subtitle {
+      font-size: clamp(16px, 2.2vw, 19px);
+      color: var(--text-secondary);
+      max-width: 720px;
+      margin: 0 auto 28px;
+    }
+
+    .strata-pills {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 34px;
+    }
+
+    .strata-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 15px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      color: #fff;
+      color: var(--text-secondary);
     }
+
+    .strata-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .strata-dot.l1 { background: var(--accent-emerald); box-shadow: 0 0 8px rgba(16, 185, 129, 0.7); }
+    .strata-dot.l2 { background: var(--accent-amber); box-shadow: 0 0 8px rgba(245, 158, 11, 0.7); }
+    .strata-dot.l3 { background: var(--accent-purple); box-shadow: 0 0 8px rgba(139, 92, 246, 0.7); }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #051b14;
+      box-shadow: 0 8px 24px -6px rgba(16, 185, 129, 0.45);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      box-shadow: 0 12px 28px -6px rgba(16, 185, 129, 0.6);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      color: var(--text-main);
+    }
+
     .btn-secondary:hover {
       background: var(--bg-card-alt);
+      border-color: var(--text-muted);
     }
+
+    .hero-sub-links {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .hero-sub-links a {
+      color: var(--accent-emerald-bright);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .hero-sub-links a:hover {
+      text-decoration: underline;
+    }
+
+    /* Interactive 4-Scene Screenshot Showcase */
     .preview-section {
-      max-width: 1100px;
-      margin: 0 auto 80px;
+      max-width: 1120px;
+      margin: 0 auto 88px;
       padding: 0 20px;
     }
-    .screenshot-frame {
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7);
+
+    .showcase-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
     }
+
+    .scene-tab {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .scene-tab:hover {
+      background: var(--bg-card-alt);
+      color: var(--text-main);
+      border-color: var(--border-strong);
+    }
+
+    .scene-tab.active {
+      background: rgba(16, 185, 129, 0.14);
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald-bright);
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.25);
+    }
+
+    .screenshot-frame {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.8);
+    }
+
     .screenshot-frame img {
       width: 100%;
+      height: auto;
       display: block;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      background: var(--bg-primary);
     }
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-      max-width: 1100px;
-      margin: 0 auto 80px;
+
+    .showcase-caption {
+      padding: 16px 24px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .showcase-caption-text {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .showcase-caption-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-emerald-bright);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    /* Section Heading */
+    .section-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 38px;
       padding: 0 20px;
     }
+
+    .section-header h2 {
+      font-size: clamp(24px, 3.2vw, 32px);
+      font-weight: 800;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    /* 6-Card Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 22px;
+      max-width: 1120px;
+      margin: 0 auto 88px;
+      padding: 0 20px;
+    }
+
     .feature-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 32px;
+      border-radius: 14px;
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.2s;
     }
+
+    .feature-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+    }
+
     .feature-icon {
       font-size: 28px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
+      line-height: 1;
     }
+
+    .feature-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-emerald-bright);
+      background: rgba(16, 185, 129, 0.12);
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
     .feature-card h3 {
-      font-size: 18px;
-      margin-bottom: 12px;
+      font-size: 17.5px;
+      margin-bottom: 10px;
       color: #fff;
+      font-weight: 700;
     }
+
     .feature-card p {
       color: var(--text-muted);
       font-size: 14px;
-      line-height: 1.6;
+      line-height: 1.65;
     }
-    .security-banner {
-      max-width: 1100px;
+
+    /* Privacy & Security Banner */
+    .security-section {
+      max-width: 1120px;
       margin: 0 auto 80px;
+      padding: 0 20px;
+    }
+
+    .security-banner {
       padding: 40px;
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(139, 92, 246, 0.08));
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 18px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
     }
+
     .security-banner h2 {
-      font-size: 22px;
+      font-size: 23px;
       color: #fff;
+      font-weight: 800;
     }
-    .security-banner p {
-      color: #cbd5e1;
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .security-item {
+      background: rgba(9, 13, 22, 0.55);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .security-item h3 {
+      font-size: 15px;
+      color: var(--accent-emerald-bright);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .security-item p {
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+
+    .security-item code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #e2e8f0;
+    }
+
+    .security-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 6px;
+    }
+
+    .security-footer a {
+      color: var(--accent-emerald-bright);
+      font-weight: 700;
+      text-decoration: underline;
       font-size: 15px;
     }
+
+    /* Footer */
     footer {
       border-top: 1px solid var(--border-color);
-      padding: 40px 20px;
+      padding: 40px 20px 48px;
       text-align: center;
       color: var(--text-muted);
       font-size: 14px;
     }
+
     .footer-links {
       display: flex;
       justify-content: center;
@@ -205,102 +564,477 @@
       margin-bottom: 16px;
       flex-wrap: wrap;
     }
+
     .footer-links a {
       color: var(--text-muted);
       text-decoration: none;
+      font-weight: 500;
     }
+
     .footer-links a:hover {
-      color: var(--accent-emerald);
+      color: var(--accent-emerald-bright);
       text-decoration: underline;
     }
+
     @media (max-width: 768px) {
-      .hero h1 { font-size: 32px; }
-      .navbar { padding: 16px 20px; }
+      .navbar {
+        padding: 12px 18px;
+      }
+      .nav-links {
+        gap: 14px;
+      }
+      .nav-links .hide-mobile {
+        display: none;
+      }
+      .hero {
+        padding: 48px 16px 32px;
+      }
+      .security-banner {
+        padding: 26px 20px;
+      }
+      .showcase-caption {
+        padding: 14px 16px;
+      }
     }
   </style>
 </head>
 <body>
 
   <!-- Navigation -->
-  <nav class="navbar">
-    <a href="./" class="nav-brand">
-      <img src="icons/icon48.png" alt="TimeLayer Icon">
-      <span>TimeLayer</span>
-    </a>
-    <div class="nav-links">
-      <a href="#features">Features</a>
-      <a href="#security">Privacy & Security</a>
-      <a href="privacy.html" style="color: var(--accent-emerald); font-weight: 600;">Privacy Policy</a>
-      <a href="https://github.com/youichi-nakajima/timelayer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
-    </div>
-  </nav>
+  <div class="navbar-wrap">
+    <nav class="navbar">
+      <a href="./" class="nav-brand">
+        <img src="icons/icon48.png" alt="TimeLayer Icon">
+        <span>TimeLayer</span>
+      </a>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a href="#features" class="hide-mobile">
+            <span class="lang-ja">主な機能</span>
+            <span class="lang-en">Features</span>
+          </a>
+          <a href="#security" class="hide-mobile">
+            <span class="lang-ja">プライバシー</span>
+            <span class="lang-en">Security</span>
+          </a>
+          <a href="privacy.html" class="privacy-link">
+            <span class="lang-ja">プライバシーポリシー</span>
+            <span class="lang-en">Privacy Policy</span>
+          </a>
+          <a href="https://github.com/youichi-nakajima/timelayer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+        <div class="lang-switcher" role="group" aria-label="Language switcher">
+          <button type="button" class="lang-btn" data-set-lang="ja">日本語</button>
+          <button type="button" class="lang-btn" data-set-lang="en">EN</button>
+        </div>
+      </div>
+    </nav>
+  </div>
 
   <!-- Hero Section -->
   <header class="hero">
-    <div class="hero-badge">Google Chrome Extension (Manifest V3)</div>
-    <h1>Layer Your Time Like Strata</h1>
-    <p>
-      Overlay and compare your Google Calendar schedules seamlessly across <strong>Today</strong>, <strong>1 Year Ago</strong>, and <strong>2 Years Ago</strong> on a single unified multi-layered view.
+    <div class="hero-badge">
+      <span class="hero-badge-dot" aria-hidden="true"></span>
+      <span class="lang-ja">v1.4.0 公開中 • Chrome 拡張機能 (Manifest V3)</span>
+      <span class="lang-en">v1.4.0 Live • Google Chrome Extension (Manifest V3)</span>
+    </div>
+
+    <h1>
+      <span class="lang-ja">時間を「地層」のように重ねる<br>Google カレンダー比較ビュー</span>
+      <span class="lang-en">Layer Your Time Like<br>Geological Strata</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      <span class="lang-ja">
+        <strong>今週</strong>・<strong>1年前の同週</strong>・<strong>2年前の同週</strong>の Google カレンダーの予定をひとつの画面に重ねて比較。「去年の今頃なにをしてた？」を過去へ遡る手間なく瞬時に振り返れます。
+      </span>
+      <span class="lang-en">
+        Overlay and compare your Google Calendar schedules seamlessly across <strong>This Week</strong>, <strong>1 Year Ago</strong>, and <strong>2 Years Ago</strong>—all inside one unified multi-layered workspace.
+      </span>
     </p>
+
+    <div class="strata-pills" aria-label="Temporal strata layers">
+      <div class="strata-pill">
+        <span class="strata-dot l1" aria-hidden="true"></span>
+        <span class="lang-ja">Layer 01：表層（現在 / 今週）</span>
+        <span class="lang-en">Layer 01: Surface (This Week)</span>
+      </div>
+      <div class="strata-pill">
+        <span class="strata-dot l2" aria-hidden="true"></span>
+        <span class="lang-ja">Layer 02：中間層（1年前の同週）</span>
+        <span class="lang-en">Layer 02: Middle (1 Year Ago)</span>
+      </div>
+      <div class="strata-pill">
+        <span class="strata-dot l3" aria-hidden="true"></span>
+        <span class="lang-ja">Layer 03：深層（2年前の同週）</span>
+        <span class="lang-en">Layer 03: Deep (2 Years Ago)</span>
+      </div>
+    </div>
+
     <div class="hero-actions">
-      <a href="privacy.html" class="btn btn-primary">Read Privacy Policy</a>
-      <a href="https://github.com/youichi-nakajima/timelayer-extension" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">View Source on GitHub</a>
+      <a href="https://chromewebstore.google.com/detail/aemndojpgknmcdamjoaocgkkiecipgfp" class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="4"/>
+          <line x1="21.17" y1="8" x2="12" y2="8"/>
+          <line x1="3.95" y1="6.06" x2="8.54" y2="14"/>
+          <line x1="10.88" y1="21.94" x2="15.46" y2="14"/>
+        </svg>
+        <span class="lang-ja">Chrome ウェブストアから追加（無料）</span>
+        <span class="lang-en">Add to Chrome — Free</span>
+      </a>
+      <a href="https://github.com/youichi-nakajima/timelayer-extension" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        <span>GitHub</span>
+      </a>
+    </div>
+
+    <div class="hero-sub-links">
+      <a href="privacy.html">
+        <span class="lang-ja">🔒 プライバシーポリシーを確認する</span>
+        <span class="lang-en">🔒 Read our Privacy Policy</span>
+      </a>
+      <span>•</span>
+      <span class="lang-ja">オープンソース (MIT) / 読み取り専用・外部サーバー送信なし</span>
+      <span class="lang-en">Open Source (MIT) • Read-Only & Zero Server Transmission</span>
     </div>
   </header>
 
-  <!-- Screenshot Preview -->
-  <section class="preview-section">
+  <!-- Interactive 4-Scene Screenshot Showcase -->
+  <section class="preview-section" aria-label="Screenshots">
+    <div class="showcase-tabs" role="tablist" aria-label="View Modes">
+      <button type="button" class="scene-tab active" role="tab" aria-selected="true" data-scene="01-matrix-view">
+        <span>🪐</span>
+        <span class="lang-ja">大画面マトリクスビュー</span>
+        <span class="lang-en">Panoramic Matrix View</span>
+      </button>
+      <button type="button" class="scene-tab" role="tab" aria-selected="false" data-scene="02-columns-view">
+        <span>📊</span>
+        <span class="lang-ja">3列同期カラムビュー</span>
+        <span class="lang-en">3-Column Synced View</span>
+      </button>
+      <button type="button" class="scene-tab" role="tab" aria-selected="false" data-scene="03-sidepanel-view">
+        <span>📌</span>
+        <span class="lang-ja">Chrome サイドパネル</span>
+        <span class="lang-en">Chrome Side Panel</span>
+      </button>
+      <button type="button" class="scene-tab" role="tab" aria-selected="false" data-scene="04-gcal-integration">
+        <span>🚀</span>
+        <span class="lang-ja">Google カレンダー直接埋め込み</span>
+        <span class="lang-en">Google Calendar Embedded</span>
+      </button>
+    </div>
+
     <div class="screenshot-frame">
-      <img src="screenshot/timelayer-01-matrix-view.png" alt="TimeLayer Matrix View Dashboard">
+      <img
+        id="showcase-img"
+        src="screenshot/timelayer-01-matrix-view-en.png"
+        alt="TimeLayer Panoramic Matrix View comparing This Week, 1 Year Ago, and 2 Years Ago"
+      >
+      <div class="showcase-caption">
+        <p class="showcase-caption-text" id="showcase-caption-text">
+          Compare 7 days horizontally across all 3 temporal strata vertically, with per-layer date headers and multi-day event banners.
+        </p>
+        <span class="showcase-caption-badge" id="showcase-caption-badge">Matrix View • v1.4.0</span>
+      </div>
     </div>
   </section>
 
-  <!-- Features Grid -->
-  <section id="features" class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">📌</div>
-      <h3>Chrome Side Panel</h3>
-      <p>Instant reference side panel that keeps your browsing workflow uninterrupted while checking historical events and notes.</p>
+  <!-- Features Section -->
+  <section id="features">
+    <div class="section-header">
+      <h2>
+        <span class="lang-ja">シーンに合わせて選べる、多彩な振り返り体験</span>
+        <span class="lang-en">Designed for Seamless Historical Reflection</span>
+      </h2>
+      <p>
+        <span class="lang-ja">日常のブラウジング中のちょっとした確認から、週次のじっくりとした振り返り・計画立てまでシームレスに対応します。</span>
+        <span class="lang-en">From quick side-panel lookups while browsing to full-screen weekly planning and multi-year comparisons.</span>
+      </p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon">🪁</div>
-      <h3>Panoramic Dashboard</h3>
-      <p>Full-screen multi-layer workspace with Matrix View (horizontal week alignment) and 3-Column Columns View with synchronized scrolling.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🚀</div>
-      <h3>Google Calendar Embedded</h3>
-      <p>Quick floating trigger button directly on calendar.google.com that slides open a drawer view without switching tabs.</p>
+
+    <div class="features-grid">
+      <article class="feature-card">
+        <div class="feature-icon">📌</div>
+        <h3>
+          <span class="lang-ja">Chrome サイドパネル</span>
+          <span class="lang-en">Chrome Side Panel</span>
+        </h3>
+        <p>
+          <span class="lang-ja">ツールバーのアイコンからワンクリックで起動。現在のタブやブラウジングを妨げずに、常に横で過去と同じ週の予定を参照できます。</span>
+          <span class="lang-en">An always-accessible side panel that keeps your browsing uninterrupted—ideal for quick historical comparisons while working.</span>
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon">🪐</div>
+        <h3>
+          <span class="lang-ja">大画面パノラマダッシュボード<span class="feature-tag">v1.4 改善</span></span>
+          <span class="lang-en">Panoramic Dashboard<span class="feature-tag">v1.4</span></span>
+        </h3>
+        <p>
+          <span class="lang-ja">「マトリクスビュー」と「3列同期カラムビュー」の2モードを搭載。v1.4 ではすべての地層に日付ヘッダーを追加し、年の違いによる日付ズレも一目で比較可能になりました。</span>
+          <span class="lang-en">Switch between horizontal Matrix View (now with centered per-layer date headers in v1.4) and row-aligned 3-Column View with synchronized scrolling.</span>
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon">🚀</div>
+        <h3>
+          <span class="lang-ja">Google カレンダー直接埋め込み</span>
+          <span class="lang-en">Google Calendar Embedded</span>
+        </h3>
+        <p>
+          <span class="lang-ja">calendar.google.com の画面右下に専用ランチャーが常駐。クリックするだけで、ページを離れずにスライドインドロワーを展開できます。</span>
+          <span class="lang-en">A floating launcher button sits in the bottom-right corner of calendar.google.com, opening a slide-in TimeLayer drawer with one click.</span>
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>
+          <span class="lang-ja">全地層インクリメンタル検索</span>
+          <span class="lang-en">Cross-Strata Instant Search</span>
+        </h3>
+        <p>
+          <span class="lang-ja">キーワードを入力するだけで、現在・1年前・2年前のすべての予定（連休や出張の複数日バナーを含む）を横断検索して即座にハイライトします。</span>
+          <span class="lang-en">Filter and highlight events—including multi-day event banners—by title, location, or calendar across all three years simultaneously.</span>
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3>
+          <span class="lang-ja">週の開始曜日切替 & 画面間同期</span>
+          <span class="lang-en">Sun/Mon Toggle & Live Sync</span>
+        </h3>
+        <p>
+          <span class="lang-ja">日曜始まり／月曜始まりをワンクリックで切り替え可能。複数カレンダーの選択や週移動、テーマ変更も開いている全画面間でリアルタイムに連動します。</span>
+          <span class="lang-en">Switch between Sunday-start and Monday-start weeks in one click. Selected calendars, theme, and sign-in state stay synced across open views.</span>
+        </p>
+      </article>
+
+      <article class="feature-card">
+        <div class="feature-icon">🌓</div>
+        <h3>
+          <span class="lang-ja">ダーク/ライト & 日英自動対応<span class="feature-tag">NEW</span></span>
+          <span class="lang-en">Dark/Light & Auto Bilingual<span class="feature-tag">NEW</span></span>
+        </h3>
+        <p>
+          <span class="lang-ja">OS のダーク／ライトモードに自動連動しつつ手動切替にも対応。v1.4 からは Chrome の表示言語に応じて日本語／英語 UI が自動で切り替わります。</span>
+          <span class="lang-en">Follows your OS appearance with one-click switching. Starting in v1.4, UI copy and date formatting automatically adapt to English and Japanese browsers.</span>
+        </p>
+      </article>
     </div>
   </section>
 
   <!-- Privacy & Security Notice -->
-  <section id="security" class="security-banner">
-    <h2>🔒 Privacy by Design & Zero Server Architecture</h2>
-    <p>
-      TimeLayer communicates directly between your browser and official Google APIs (<code>googleapis.com</code>). 
-      Your calendar entries and tokens are <strong>never sent to or stored on any external server</strong>, including the developer's server.
-    </p>
-    <p>
-      We strictly request read-only permissions (<code>calendar.calendarlist.readonly</code> and <code>calendar.events.readonly</code>) to compare events. No creation, modification, or deletion permissions are requested.
-    </p>
-    <div style="margin-top: 12px;">
-      <a href="privacy.html" style="color: var(--accent-emerald); font-weight: 600; text-decoration: underline;">
-        View our Full Privacy Policy →
-      </a>
+  <section id="security" class="security-section">
+    <div class="security-banner">
+      <h2>
+        <span class="lang-ja">🔒 プライバシー最優先 & 完全ローカル設計</span>
+        <span class="lang-en">🔒 Privacy by Design & Zero Server Architecture</span>
+      </h2>
+
+      <div class="security-grid">
+        <div class="security-item">
+          <h3>
+            <span class="lang-ja">外部サーバーへの送信ゼロ</span>
+            <span class="lang-en">Zero External Servers</span>
+          </h3>
+          <p>
+            <span class="lang-ja">すべてのカレンダーデータはあなたのブラウザと Google 公式 API（<code>googleapis.com</code>）の間でのみ直接通信され、開発者を含む外部サーバーへ送信・蓄積されることはありません。</span>
+            <span class="lang-en">TimeLayer communicates strictly between your browser and official Google APIs (<code>googleapis.com</code>). Your calendar events are never sent to or stored on any external server.</span>
+          </p>
+        </div>
+
+        <div class="security-item">
+          <h3>
+            <span class="lang-ja">最小権限（読み取り専用）</span>
+            <span class="lang-en">Least-Privilege Read-Only</span>
+          </h3>
+          <p>
+            <span class="lang-ja">比較表示に必要な <code>calendar.calendarlist.readonly</code> と <code>calendar.events.readonly</code> のみを要求します。予定の作成・編集・削除権限は一切持ちません。</span>
+            <span class="lang-en">Requests only read-only scopes (<code>calendar.calendarlist.readonly</code> and <code>calendar.events.readonly</code>). Never requests permission to create, modify, or delete events.</span>
+          </p>
+        </div>
+
+        <div class="security-item">
+          <h3>
+            <span class="lang-ja">メモリ内管理 & 1時間自動失効</span>
+            <span class="lang-en">In-Memory Session Tokens</span>
+          </h3>
+          <p>
+            <span class="lang-ja">OAuth アクセストークンはセッションメモリ（<code>chrome.storage.session</code>）でのみ保持され、ディスクへ平文保存せず最大1時間で安全に自動失効します。</span>
+            <span class="lang-en">OAuth tokens reside solely in browser session memory (<code>chrome.storage.session</code>), never written to disk, and expire automatically within 1 hour or upon sign-out.</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="security-footer">
+        <a href="privacy.html">
+          <span class="lang-ja">プライバシーポリシー全文を読む →</span>
+          <span class="lang-en">View Full Privacy Policy →</span>
+        </a>
+        <span style="color: var(--text-muted); font-size: 13px;">
+          <span class="lang-ja">Google API Services User Data Policy (Limited Use) 準拠</span>
+          <span class="lang-en">Complies with Google API Services User Data Policy (Limited Use)</span>
+        </span>
+      </div>
     </div>
   </section>
 
   <!-- Footer -->
   <footer>
     <div class="footer-links">
-      <a href="./">Home</a>
+      <a href="./">
+        <span class="lang-ja">ホーム</span>
+        <span class="lang-en">Home</span>
+      </a>
+      <a href="https://chromewebstore.google.com/detail/aemndojpgknmcdamjoaocgkkiecipgfp" target="_blank" rel="noopener noreferrer">
+        <span class="lang-ja">Chrome ウェブストア</span>
+        <span class="lang-en">Chrome Web Store</span>
+      </a>
       <a href="privacy.html"><strong>Privacy Policy (プライバシーポリシー)</strong></a>
-      <a href="https://github.com/youichi-nakajima/timelayer-extension" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-      <a href="https://github.com/youichi-nakajima/timelayer-extension/issues" target="_blank" rel="noopener noreferrer">Support & Issues</a>
+      <a href="https://github.com/youichi-nakajima/timelayer-extension" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://github.com/youichi-nakajima/timelayer-extension/issues" target="_blank" rel="noopener noreferrer">
+        <span class="lang-ja">お問い合わせ / Issues</span>
+        <span class="lang-en">Support & Issues</span>
+      </a>
+      <a href="https://buymeacoffee.com/youichinakq" target="_blank" rel="noopener noreferrer">☕ Buy Me a Coffee</a>
     </div>
     <p>© 2026 Youichi Nakajima. Released under the MIT License.</p>
   </footer>
 
+  <script>
+    (function () {
+      var SCENES = {
+        '01-matrix-view': {
+          ja: {
+            src: 'screenshot/timelayer-01-matrix-view.png',
+            alt: 'TimeLayer 大画面パノラマダッシュボード（週横組みマトリクスビュー）',
+            caption: '曜日を横軸、3つの地層（現在・1年前・2年前）を縦軸に並べた週横組みビュー。v1.4 より各地層すべてに日付ヘッダーを表示し、年ごとの日付ズレも一目で比較できます。',
+            badge: 'Matrix View • v1.4.0'
+          },
+          en: {
+            src: 'screenshot/timelayer-01-matrix-view-en.png',
+            alt: 'TimeLayer Panoramic Matrix View comparing This Week, 1 Year Ago, and 2 Years Ago',
+            caption: 'Compare 7 days horizontally across all 3 temporal strata vertically, with centered per-layer date headers and multi-day event banners.',
+            badge: 'Matrix View • v1.4.0'
+          }
+        },
+        '02-columns-view': {
+          ja: {
+            src: 'screenshot/timelayer-02-columns-view.png',
+            alt: 'TimeLayer 大画面パノラマダッシュボード（3列同期カラムビュー）',
+            caption: '現在・1年前・2年前を3列に並列表示。予定の有無にかかわらず全7曜日の水平ラインが揃い、3列が連動して同期スクロールします。',
+            badge: '3-Column View'
+          },
+          en: {
+            src: 'screenshot/timelayer-02-columns-view-en.png',
+            alt: 'TimeLayer 3-Column Synced View comparing Present, 1 Year Ago, and 2 Years Ago side by side',
+            caption: 'View Present, 1 Year Ago, and 2 Years Ago side by side with horizontally aligned day rows and synchronized scrolling.',
+            badge: '3-Column View'
+          }
+        },
+        '03-sidepanel-view': {
+          ja: {
+            src: 'screenshot/timelayer-03-sidepanel-view.png',
+            alt: 'TimeLayer Chrome サイドパネルビュー',
+            caption: 'ブラウジングを遮らずに作業タブの横で3つの年代を常時参照できるサイドパネル。複数カレンダー切り替えや横断検索もここから操作できます。',
+            badge: 'Side Panel View'
+          },
+          en: {
+            src: 'screenshot/timelayer-03-sidepanel-view-en.png',
+            alt: 'TimeLayer Chrome Side Panel view alongside browsing',
+            caption: 'Keep all three temporal strata open next to any browser tab for instant comparisons, calendar filtering, and keyword search.',
+            badge: 'Side Panel View'
+          }
+        },
+        '04-gcal-integration': {
+          ja: {
+            src: 'screenshot/timelayer-04-gcal-integration.png',
+            alt: 'Google カレンダー画面内の TimeLayer スライドインドロワー',
+            caption: 'calendar.google.com の右下に専用ランチャーが常駐。普段使っている Google カレンダー上からワンクリックで過去2年分の予定を呼び出せます。',
+            badge: 'Google Calendar Embedded'
+          },
+          en: {
+            src: 'screenshot/timelayer-04-gcal-integration-en.png',
+            alt: 'TimeLayer floating launcher and slide-in drawer inside Google Calendar',
+            caption: 'Access your past schedules right inside calendar.google.com via the bottom-right launcher and slide-in drawer.',
+            badge: 'Google Calendar Embedded'
+          }
+        }
+      };
+
+      var TITLES = {
+        ja: 'TimeLayer - カレンダー地層ビュー | Google カレンダー過去比較 Chrome 拡張機能',
+        en: 'TimeLayer - Calendar Strata Viewer for Google Calendar'
+      };
+
+      var currentLang = document.documentElement.getAttribute('data-lang') === 'ja' ? 'ja' : 'en';
+      var currentScene = '01-matrix-view';
+
+      var showcaseImg = document.getElementById('showcase-img');
+      var showcaseCaption = document.getElementById('showcase-caption-text');
+      var showcaseBadge = document.getElementById('showcase-caption-badge');
+      var langBtns = document.querySelectorAll('.lang-btn');
+      var sceneTabs = document.querySelectorAll('.scene-tab');
+
+      function renderLanguage(lang) {
+        currentLang = (lang === 'ja') ? 'ja' : 'en';
+        document.documentElement.setAttribute('data-lang', currentLang);
+        document.documentElement.setAttribute('lang', currentLang);
+        document.title = TITLES[currentLang];
+
+        langBtns.forEach(function (btn) {
+          var isActive = btn.getAttribute('data-set-lang') === currentLang;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-pressed', String(isActive));
+        });
+
+        renderScene(currentScene);
+      }
+
+      function renderScene(sceneKey) {
+        if (!SCENES[sceneKey]) return;
+        currentScene = sceneKey;
+        var data = SCENES[sceneKey][currentLang];
+
+        if (showcaseImg) {
+          showcaseImg.src = data.src;
+          showcaseImg.alt = data.alt;
+        }
+        if (showcaseCaption) {
+          showcaseCaption.textContent = data.caption;
+        }
+        if (showcaseBadge) {
+          showcaseBadge.textContent = data.badge;
+        }
+
+        sceneTabs.forEach(function (tab) {
+          var isActive = tab.getAttribute('data-scene') === sceneKey;
+          tab.classList.toggle('active', isActive);
+          tab.setAttribute('aria-selected', String(isActive));
+        });
+      }
+
+      langBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          renderLanguage(btn.getAttribute('data-set-lang'));
+        });
+      });
+
+      sceneTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          renderScene(tab.getAttribute('data-scene'));
+        });
+      });
+
+      renderLanguage(currentLang);
+    })();
+  </script>
 </body>
 </html>
